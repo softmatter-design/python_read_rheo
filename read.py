@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #######################################################
 import pandas as pd
-import openpyxl
+# import openpyxl
 #######################################################
 
 def read_book():
@@ -20,6 +20,16 @@ def read_book():
     # print(cell.value)
     # g = target_sheet.iter_rows(min_row=1, max_row=30, min_col=1, max_col=10)
     # print(list)
-    df = pd.read_excel(data_file, sheet_name=1, header=None, usecols=[0])
-    print(df)
-read_book()
+    df = pd.read_excel(data_file, sheet_name=1, header=None)
+    return df
+
+def find_index(series, item):
+    matched = list(series[series == item].index)
+    return matched
+
+df = read_book()
+series = df[0]
+matched = find_index(series, '測定点数')
+for line in matched:
+    data = list(df.loc[df.index[line:line+13], df.columns[2:10]])
+    print(data)
