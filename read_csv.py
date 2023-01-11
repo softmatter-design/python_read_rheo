@@ -12,15 +12,27 @@ base_temp = 130
 #####
 def readcsv():
 	datalist= csv_read(csvfile)
-
 	set_shift(datalist, base_temp)
-
 	make_datafiles(datalist)
-
 	repeat = len(datalist)
 	make_multi_graph(repeat)
+
+	read_and_set(datalist)
 	return
 #####
+def read_and_set(datalist):
+	dic={'y':True,'yes':True,'q':False,'quit':False}
+	while True:
+		make_datafiles(datalist)
+		repeat = len(datalist)
+		make_multi_graph(repeat)
+		print('Quit input process: type [q]uit')
+		inp = input('Condition is OK ==> [y]es >> ').lower()
+		if inp in dic:
+			inp = dic[inp]
+			break
+	return
+
 def csv_read(csvfile):
 	with open(csvfile, encoding='utf8') as f:
 		csvread = list(csv.reader(f))
