@@ -89,6 +89,22 @@ def read_shift():
 	return shift_dic
 
 # グラフを作成
+
+def makecolor(num):
+	col_list = []
+	ind = 0
+	value = [0., 0.5, 1.0]
+	# [0., 0.25, 0.5, 0.75, 1.0]
+	while ind < num:
+		for red, green, blue in itertools.product(value, value, value):
+			col_list.append([red, green, blue])
+			ind+=1
+			if ind >= num:
+				break
+	return col_list
+
+
+	
 def make_multi_graph(repeat):
 	make_multi_script(repeat)
 	if platform.system() == "Windows":

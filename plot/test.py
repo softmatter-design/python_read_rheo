@@ -6,12 +6,16 @@ import os
 import platform
 import subprocess
 
+import math
 import numpy as np
 import matplotlib.pyplot as plt
 import variables as var
 #####
+def make_master():
+	readcsv()
+	adjust()
+	return
 
-#####
 def readcsv():
 	csv_read(var.csvfile)
 	for line in var.datalist:
@@ -20,15 +24,8 @@ def readcsv():
 		for dataline in line[1][1:]:
 			freq.append(float(dataline[0]))
 			tand.append(float(dataline[3]))
-		var.axdata.append([int(line[0]), freq, tand])
-
-	plot()
-	# set_shift(datalist, base_temp)
-
-	# make_datafiles(datalist)
-
-	# repeat = len(datalist)
-	# make_multi_graph(repeat)
+		var.axdata.append([int(line[0])+273.15, freq, tand])
+	plot_raw()
 	return
 
 def csv_read(csvfile):
@@ -49,27 +46,14 @@ def make_datalist(csvread):
 			var.datalist.append([round(temp), tmp])
 	return
 
-# def makecolor(num):
-# 	col_list = []
-# 	ind = 0
-# 	value = [0., 0.5, 1.0]
-# 	# [0., 0.25, 0.5, 0.75, 1.0]
-# 	while ind < num:
-# 		for red, green, blue in itertools.product(value, value, value):
-# 			col_list.append([red, green, blue])
-# 			ind+=1
-# 			if ind >= num:
-# 				break
-# 	return col_list
-
-def plot():
+def plot_raw():
 	fig, ax = plt.subplots()
 
 	for i, data in enumerate(var.axdata):
 		ax.plot(data[1], data[2], label='T='+str(data[0]))
 
 	ax.set_xlabel('Freq.')  # x軸ラベル
-	ax.set_ylabel('Tan d')  # y軸ラベル
+	ax.set_ylabel(r'Tan $\delta$')  # y軸ラベル
 	ax.set_title('Measured Raw Data') # グラフタイトル
 	ax.semilogx(base=10)
 	ax.legend(borderaxespad=0, ncol=2)
@@ -77,15 +61,24 @@ def plot():
 	
 	inp = input('input "q" to quit  ')
 	if inp == 'q':
-		return
+		exit()
 	else:
 		os.system('cls')
-		plt.cla()
+		plt.close()
+	return
+
+def adjust():
+	plot2()
+	return
+
+
+def plot2():
+	fig, ax = plt.subplots()
 
 	inp = ''
 	while inp != 'q':
 		
-		for i, data in enumerate(var.axdata):
+		for data in var.axdata:
 			temp = data[0]
 			at = 10**(-1*var.c1*(temp - var.ts)/(var.c2 + temp - var.ts))
 			print(temp, at)
@@ -93,18 +86,26 @@ def plot():
 			ax.plot(mfreq, data[2], label='T='+str(temp))
 
 		ax.set_xlabel('Freq.')  # x軸ラベル
-		ax.set_ylabel('Tan d')  # y軸ラベル
+		ax.set_ylabel(r'Tan $\delta$')  # y軸ラベル
 		ax.set_title('Shifted by AT') # グラフタイトル
 		# ax.grid()            # 罫線
 		ax.loglog(base=10)
 		ax.legend(borderaxespad=0, ncol=2)
 		
-		plt.pause(0.01)
+		plt.pause(1)
+
+		modts= input("T_ref is set to " + str(var.ts) + '\nPut new data')
+		if modts != '' and modts.isnumeric:
+			var.ts = float(modts)
 
 		inp = input('input "q" to quit ')
 		os.system('cls')
 		plt.cla()
 	return
 
+def savetable():
+	return
+
+	
 if __name__ == '__main__':
-	readcsv()
+	make_master()
