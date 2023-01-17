@@ -10,3 +10,5 @@ axdata = []
 c1 = 9
 c2 = 102
 ts = 250
+
+shift_list = []
