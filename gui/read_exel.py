@@ -8,12 +8,12 @@ sg.change_look_and_feel('DarkAmber')
 # 各項目のレイアウト
 layout = [[sg.Text('ファイル選択'),
           sg.InputText('ファイルパス・名',key='-file-'),
-          sg.FilesBrowse('ファイル読込', target='-file-', file_types=(('Excell ファイル', '*.xlsx'),))],
+          sg.FilesBrowse('ファイル読込', target='-file-', file_types=(('csv ファイル', '*.csv'),))],
           [sg.Button('実行',key='bt')]]
 
 
 # ウィンドウ作成
-window = sg.Window('エクセルファイルの入出力', layout)
+window = sg.Window('csvファイルの入出力', layout)
 
 # イベントループ
 while True:
