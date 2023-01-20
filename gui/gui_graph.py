@@ -1,60 +1,70 @@
-"""
-Matplotlibのグラフを別Winodwで表示
-
-"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#####
 import numpy as np
 import matplotlib.pyplot as plt
-
 import PySimpleGUI as sg
+import random
 
-def make_data_fig(make=True):
-    fig = plt.figure()
+def org_data():
+	x = [i for i in range(100)]
+	y = [np.sin(i*np.pi/20.) for i in range(100)]
+	return np.vstack([x,y])
 
-    if make:
-        # x = np.linspace(0, 2*np.pi, 500)
-        x = np.arange(0, 2*np.pi, 0.05*np.pi)
-        ax = fig.add_subplot(111)
-        ax.plot(x, np.sin(x))
-        return fig
+def set_data():
+	x = [i for i in range(100)]
+	y = [random.random() for i in range(100)]
+	return np.vstack([x,y])
 
-    else:
-        return fig
+def make_fig(data):
+	fig, ax = plt.subplots()
+	ax.plot(data[0], data[1])
+	ax.set_xlabel('x')  # x軸ラベル
+	ax.set_ylabel(r'y')  # y軸ラベル
+	ax.set_title('Title') # グラフタイトル
+	return fig
 
 
 def draw_plot(fig):
-
-    plt.show(block=False)
-    # block=Falseに指定。これが重要
-    # コンソールは何も入力を受け付けなくなり、GUI を閉じないと作業復帰できない。
+	plt.show(block=False)
 
 def del_plot(fig):
+	plt.close()
 
-    # plt.cla(): Axesをクリア
-    # plt.clf(): figureをクリア
-    # plt.close(): プロットを表示するためにポップアップしたウィンドウをクローズ
+def main():
+	sg.theme('Light Blue 2')
+	fig_ = ''
 
-    plt.close()
+	layout = [[sg.Text('Graph Diasplay')],
+			[sg.Button('Original',key='-org-'), sg.Button('Rewrite',key='-rewrite-'), sg.Button('Clear',key='-clear-'), sg.Cancel()]
+			]
 
+	window = sg.Window('Plot', layout, location=(100, 100), finalize=True)
 
-sg.theme('Light Blue 2')
+	while True:
+		event, values = window.read()
 
-layout = [[sg.Text('Graph Diasplay')],
-          [sg.Button('Display',key='-display-'), sg.Button('clear',key='-clear-'), sg.Cancel()]
-          ]
+		if event in (None, 'Cancel'):
+			break
 
-window = sg.Window('Plot', layout, location=(100, 100), finalize=True)
+		elif event == '-org-':
+			if fig_ != '':
+				del_plot(fig_)
+			datalist = org_data()
+			fig_ = make_fig(datalist)
+			draw_plot(fig_)
 
-while True:
-    event, values = window.read()
+		elif event == '-rewrite-':
+			del_plot(fig_)
 
-    if event in (None, 'Cancel'):
-        break
+			datalist = set_data()
+			fig_ = make_fig(datalist)
+			draw_plot(fig_)
+		
+		elif event == '-clear-' and fig_ != '':
+			del_plot(fig_)
 
-    elif event == '-display-':
-        fig_ = make_data_fig(make=True)
-        draw_plot(fig_)
+	window.close()
 
-    elif event == '-clear-':
-        del_plot(fig_)
-
-window.close()
+if __name__ == '__main__':
+	main()
