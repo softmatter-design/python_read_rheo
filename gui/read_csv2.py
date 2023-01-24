@@ -7,7 +7,9 @@ import csv
 def make_window():
 	layout = [
 			[sg.Text('読み取り対象のファイルを指定してください')],
-			[sg.Button('Select', key='-select-'), sg.Button('Write', key='-write-'), sg.Button('Cancel', key='-cancel-')]
+			[sg.Button('Select', key='-select-'), 
+			sg.Button('Write', key='-write-'), 
+			sg.Button('Cancel', key='-cancel-')]
 			]
 	return sg.Window('CSV file の読み込み', layout)
 
@@ -17,7 +19,7 @@ def main():
 	while True:
 		event, values = window.read()
 
-		if event in [sg.WIN_CLOSED, '-cancel-'] : #ウィンドウのXボタンを押したときの処理
+		if event in [sg.WIN_CLOSED, '-cancel-']:
 			break
 		
 		if event == '-select-':
