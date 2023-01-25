@@ -5,11 +5,40 @@ import PySimpleGUI as sg
 import csv
 #####
 def main():
-	csvfile = read_csv()
+	# Main Window
+	window = make_mainwindow()
 
-	# cutcsv(csvfile)
+	# Main Loop
+	while True:
+		event, values = window.read()
+
+		if event in [sg.WIN_CLOSED, '-cancel-']:
+			break
+		
+		if event == '-select-':
+			csvfile = sg.popup_get_file('get file', file_types=(("CSV Files", ".csv"),))
+			with open(csvfile, encoding='utf8') as f:
+				csvlist = list(csv.reader(f))
+
+	window.close()
 
 	return
+
+#####
+# Main Window
+#####
+def make_mainwindow():
+
+	main_layout = [
+					[
+						sg.Text('Original Data File:', size = (10,1)), 
+						sg.Text('not selected yet', size = (10,1)),
+						sg.Button('Select', key='-select-')
+					],
+					[sg.Cancel()]
+				]
+	return sg.Window('Main Window', main_layout)
+
 
 #####
 # Read csv
