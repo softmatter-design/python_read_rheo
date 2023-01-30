@@ -108,26 +108,17 @@ def show_orgdata(csvfile, csvlist):
 			break
 		elif event == '-extract-':
 			extract_csv(csvlist)
+
+		elif event == '-ok-':
 			res = True
 			break
+
 	orgdata_window.close()
 	return res
 
 #####
 # Extract data
 #####
-def extracted_window(datalabel, templist):
-	
-	# ウィンドウのレイアウト
-	extracted_layout=[
-			[sg.Text('Selected Temp.:', size=(12,1)), 
-			sg.Text('not selected yet', key = '-selectedtemp-', relief=sg.RELIEF_RAISED, border_width=2, size = (8,1))], 
-			[sg.Listbox(templist, key='-temp-', size=(None, 3)),sg.Button('Select',key='-select-')],
-			[sg.Table([[None for i in datalabel]], headings=datalabel, key='-table-', def_col_width=10, auto_size_columns=False, vertical_scroll_only=False, num_rows=16)]
-			]
-	return sg.Window('Extracted data table !', extracted_layout, resizable = True, finalize=True)
-
-
 def extract_csv(csvlist):
 	datalabel = list(var.datalabel_dic.keys())
 
@@ -157,7 +148,15 @@ def extract_csv(csvlist):
 				horizontal.append([vertical[i][col] for i in range(np.array(vertical).shape[0])])
 			moddata[temperature] = [horizontal, tmp_dic]
 
-	ex_window = extracted_window(datalabel, temp_list)
+	# ウィンドウのレイアウト
+	extracted_layout=[
+			[sg.Text('Selected Temp.:', size=(12,1)), 
+			sg.Text('not selected yet', key = '-selectedtemp-', relief=sg.RELIEF_RAISED, border_width=2, size = (8,1))], 
+			[sg.Listbox(temp_list, key='-temp-', size=(None, 3)),sg.Button('Select',key='-select-')],
+			[sg.Table([[None for i in datalabel]], headings=datalabel, key='-table-', def_col_width=10, auto_size_columns=False, vertical_scroll_only=False, num_rows=16)]
+			]
+	ex_window = sg.Window('Extracted data table !', extracted_layout, resizable = True, finalize=True)
+
 	while True:
 		event, values = ex_window.read()
 		if event in [sg.WIN_CLOSED, '-exit-']:
