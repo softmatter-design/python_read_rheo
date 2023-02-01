@@ -18,12 +18,12 @@ def main():
 			break
 		
 		### Main Window Procedure
-		if event == '-select1-':
+		elif event == '-select1-':
 			csvfile = sg.popup_get_file('get file', file_types=(("CSV Files", ".csv"),))
 			with open(csvfile, encoding='utf8') as f:
 				csvlist = list(csv.reader(f))
 			main_window['-orgdata-'].update(csvfile)
-		if event == '-show_org-' and csvfile != '':
+		elif event == '-show_org-' and csvfile != '':
 			main_window.hide()
 			res = show_orgdata(csvfile, csvlist)
 			print(res)
@@ -62,7 +62,7 @@ def show_orgdata(csvfile, csvlist):
 			[sg.Table(csvlist, headings=ncolm_list, display_row_numbers=True, def_col_width=6, auto_size_columns=False, vertical_scroll_only=False, num_rows=30)]
 			
 	]
-	orgdata_window = sg.Window('Selected Data', sublayout1,finalize=True, size=(800,460), resizable=True)
+	orgdata_window = sg.Window('Selected Data', sublayout1, finalize=True, size=(800,460), resizable=True)
 
 	res = None
 
@@ -142,7 +142,7 @@ def extract_csv(csvlist):
 		event, values = ex_window.read()
 		if event in [sg.WIN_CLOSED, '-exit-']:
 			break
-		if event == '-select-':
+		elif event == '-select-':
 			temperature = values['-temp-'][0]
 			ex_window['-table-'].update(moddata[temperature][0])
 			ex_window['-selectedtemp-'].update(temperature)

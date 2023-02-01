@@ -1,3 +1,4 @@
+csvfile = ''
 datalabel_dic = {
 			'Temp.':'温度', 
 			'Ang. Freq.':'角周波数', 
@@ -6,3 +7,8 @@ datalabel_dic = {
 			'Tan_d':'損失正接',
 			}
 skip = 1
+temperature = 0
+temp_list = []
+binaryfile = ''
+moddata = {}
+fig =  ''

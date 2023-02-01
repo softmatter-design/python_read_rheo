@@ -5,31 +5,39 @@ import PySimpleGUI as sg
 import csv
 import numpy as np
 import variables as var
+import matplotlib.pyplot as plt
+import pickle
 #####
 def main():
 	# Main Window
 	main_window = make_mainwindow()
-
-	csvfile = ''
 	# Main Loop
 	while True:
 		event, values = main_window.read()
-
+		### Main Window Procedure
 		if event in [sg.WIN_CLOSED, '-exit-']:
 			break
-		
-		### Main Window Procedure
-		if event == '-select_org-':
-			csvfile = sg.popup_get_file('get file', file_types=(("CSV Files", ".csv"),))
-			with open(csvfile, encoding='utf8') as f:
-				csvlist = list(csv.reader(f))
-			main_window['-orgdata-'].update(csvfile)
-		if event == '-show_org-' and csvfile != '':
+		elif event == '-select_org-':
+			var.csvfile = sg.popup_get_file('get file', file_types=(("CSV Files", ".csv"),))
+			with open(var.csvfile, encoding='utf8') as f:
+				var.csvlist = list(csv.reader(f))
+			main_window['-orgdata-'].update(var.csvfile)
+			main_window['-show_org-'].update(disabled=False)
+		elif event == '-show_org-' and var.csvfile != '':
 			main_window.hide()
-			res = show_orgdata(csvfile, csvlist)
-			print(res)
+			res = show_orgdata()
 			main_window.un_hide()
-
+			if var.binaryfile != '':
+				main_window['-exdata-'].update(var.binaryfile)
+				main_window['-show_ext-'].update(disabled=False)
+		elif event == '-load-':
+			var.binaryfile = sg.popup_get_file('get file', file_types=(("Binary Data File", ".pcl"),))
+			with open(var.binaryfile, mode='rb') as f:
+				var.moddata = pickle.load(f)
+			main_window['-exdata-'].update(var.binaryfile)
+			main_window['-show_ext-'].update(disabled=False)
+		elif event == '-show_ext-':
+			show_extracted()
 	main_window.close()
 
 	return
@@ -43,13 +51,13 @@ def make_mainwindow():
 							sg.Text('not selected yet', key = '-orgdata-', relief=sg.RELIEF_RAISED, border_width=2, size = (60,1))],
 							[sg.Text('', key = '-worksheet-')],
 							[sg.Button('Select File', key='-select_org-'),
-							sg.Button('Show Data', key='-show_org-')]
+							sg.Button('Show Data', key='-show_org-', disabled=True)]
 							]
 						)
 	
 	frame_extracted = sg.Frame('Extracted Data File',[
 							[#sg.Text('Extracted File:', size = (12,1)), 
-							sg.Text('not extracted yet', key = '-orgdata-', relief=sg.RELIEF_RAISED, border_width=2, size = (60,1))],
+							sg.Text('not extracted yet', key = '-exdata-', relief=sg.RELIEF_RAISED, border_width=2, size = (60,1))],
 							[sg.Button('Load Data File', key='-load-'),
 							sg.Button('Show Extracted', key='-show_ext-', disabled=True)]
 							]
@@ -74,22 +82,20 @@ def make_mainwindow():
 #####
 # Show Original Data 
 #####
-def show_orgdata(csvfile, csvlist):
-	ncolm_list = [str(x) for x in range(len(csvlist[0]))]
+def show_orgdata():
+	ncolm_list = [str(x) for x in range(len(var.csvlist[0]))]
 	cond_label = list(var.datalabel_dic.keys())
 	cond_data = [[var.datalabel_dic[key] for key in list(var.datalabel_dic.keys())]]
-	print(cond_label)
-	print(cond_data)
 
 	frame_table = sg.Frame(
 		'Selected Data Table', [
-			[sg.Text('Selected Data File:'), sg.Text(csvfile)],
-			[sg.Table(csvlist, headings=ncolm_list, display_row_numbers=True, def_col_width=6, auto_size_columns=False, vertical_scroll_only=False, num_rows=20)]
+			[sg.Text('Selected Data File:'), sg.Text(var.csvfile)],
+			[sg.Table(var.csvlist, headings=ncolm_list, display_row_numbers=True, def_col_width=6, auto_size_columns=False, vertical_scroll_only=False, num_rows=20)]
 		]
 	)
 	frame_extract = sg.Frame(
 		'Extract Data', [
-			[sg.Table(cond_data, headings=cond_label, def_col_width=16, justification='center', auto_size_columns=False, num_rows=2)],
+			[sg.Table(cond_data, headings=cond_label, def_col_width=16, justification='center', auto_size_columns=False, num_rows=1)],
 			[sg.Text('Skip Columns:', size=(10,1)), sg.Text(var.skip, size=(4,1))],
 			[sg.Button("Extract", key='-extract-')]
 		]
@@ -107,7 +113,8 @@ def show_orgdata(csvfile, csvlist):
 		if event in [sg.WIN_CLOSED, '-exit-']:
 			break
 		elif event == '-extract-':
-			extract_csv(csvlist)
+			extract_csv()
+			show_extracted()
 
 		elif event == '-ok-':
 			res = True
@@ -119,41 +126,48 @@ def show_orgdata(csvfile, csvlist):
 #####
 # Extract data
 #####
-def extract_csv(csvlist):
-	datalabel = list(var.datalabel_dic.keys())
+def extract_csv():
+	# datalabel = list(var.datalabel_dic.keys())
 
-	moddata = {}
-	temp_list = []
-	for i, line in enumerate(csvlist):
+	for i, line in enumerate(var.csvlist):
 		if set(var.datalabel_dic.values()).issubset(set(line)) :
 			c_label = i
 			count = c_label + var.skip + 1
 			tmp_dic = {}
 			for k, v in var.datalabel_dic.items():
-				pos = csvlist[c_label].index(v)
+				pos = var.csvlist[c_label].index(v)
 				tmp = []
-				for dataline in csvlist[count:]:
+				for dataline in var.csvlist[count:]:
 					if dataline[pos] != '':
 						tmp.append(float(dataline[pos]))
 					else:
 						break
 				tmp_dic[k] = tmp
 				if k == 'Temp.':
-					temperature = round(np.mean(tmp), 1)
-					temp_list.append(temperature)
+					temp = round(np.mean(tmp), 1)
+					var.temp_list.append(temp)
 			
 			horizontal = []
 			vertical = list(tmp_dic.values())
 			for col in range(len(vertical[0])):
 				horizontal.append([vertical[i][col] for i in range(np.array(vertical).shape[0])])
-			moddata[temperature] = [horizontal, tmp_dic]
+			var.moddata[temp] = [horizontal, tmp_dic]
 
+def show_extracted():
+	var.temp_list = sorted(list(var.moddata.keys()))
 	# ウィンドウのレイアウト
+	frame_graph = sg.Frame(
+					'Draw Graph', [
+					[sg.Button('Draw Selected Graph', key = '-draw-', disabled=True),
+					sg.Button('Draw All Graph', key = '-drawall-'), 
+					sg.Button('Clear Graph', key = '-clear-')]
+					])
 	extracted_layout=[
-			[sg.Text('Selected Temp.:', size=(12,1)), 
-			sg.Text('not selected yet', key = '-selectedtemp-', relief=sg.RELIEF_RAISED, border_width=2, size = (8,1))], 
-			[sg.Listbox(temp_list, key='-temp-', size=(None, 3)),sg.Button('Select',key='-select-')],
-			[sg.Table([[None for i in datalabel]], headings=datalabel, key='-table-', def_col_width=10, auto_size_columns=False, vertical_scroll_only=False, num_rows=16)]
+			[sg.Listbox(var.temp_list, key='-temp-', size=(None, 3)),
+			sg.Button('Select',key='-select-')],
+			[sg.Table([[None for i in list(var.datalabel_dic.keys())]], headings=list(var.datalabel_dic.keys()), key='-table-', def_col_width=10, auto_size_columns=False, vertical_scroll_only=False, num_rows = len(var.moddata[var.temp_list[0]][0]))],
+			[frame_graph],
+			[sg.Button('Save Data', key = '-save-', disabled=True), sg.Button('Exit', key = '-exit-')]
 			]
 	ex_window = sg.Window('Extracted data table !', extracted_layout, resizable = True, finalize=True)
 
@@ -161,11 +175,60 @@ def extract_csv(csvlist):
 		event, values = ex_window.read()
 		if event in [sg.WIN_CLOSED, '-exit-']:
 			break
-		if event == '-select-':
-			temperature = values['-temp-'][0]
-			ex_window['-table-'].update(moddata[temperature][0])
-			ex_window['-selectedtemp-'].update(temperature)
+		elif event == '-select-':
+			if values['-temp-'] != []:
+				var.temperature = values['-temp-'][0]
+				ex_window['-table-'].update(var.moddata[var.temperature][0])
+				#
+				ex_window['-save-'].update(disabled=False)
+				ex_window['-draw-'].update(disabled=False)
+			else:
+				value = sg.popup_error('Proper Temperature is not selected')
+		elif event == '-save-':
+			var.binaryfile = sg.popup_get_file('save', save_as=True, file_types=(("Binary Data File", ".pcl"),))
+			save_binary()
+		elif event == '-draw-':
+			draw_siglegraph()
+		elif event == '-drawall-':
+			draw_allgraphs()
+		elif event == '-clear-' and var.fig != '':
+			plt.close()
+
 	ex_window.close()
+
+def save_binary():
+	with open(var.binaryfile, mode='wb') as f:
+		pickle.dump(var.moddata, f)
+	return
+
+def draw_siglegraph():
+	var.fig, ax = plt.subplots()
+
+	ax.plot(var.moddata[temp][1]['Ang. Freq.'], var.moddata[temp][1]['Tan_d'], label='T='+str(var.temperature))
+	ax.set_xlabel('Freq.')  # x軸ラベル
+	ax.set_ylabel(r'Tan $\delta$')  # y軸ラベル
+	ax.set_title('Measured Raw Data for T=' + str(var.temperature)) # グラフタイトル
+	ax.semilogx(base=10)
+	ax.legend(borderaxespad=0, ncol=2)
+
+	plt.show(block=False)
+
+	return
+
+def draw_allgraphs():
+	var.fig, ax = plt.subplots()
+
+	for temp in var.temp_list:
+		ax.plot(var.moddata[temp][1]['Ang. Freq.'], var.moddata[temp][1]['Tan_d'], label='T='+str(temp))
+	ax.set_xlabel('Freq.')  # x軸ラベル
+	ax.set_ylabel(r'Tan $\delta$')  # y軸ラベル
+	ax.set_title('Measured Raw Data ALL') # グラフタイトル
+	ax.semilogx(base=10)
+	ax.legend(borderaxespad=0, ncol=2)
+
+	plt.show(block=False)
+
+	return
 
 if __name__ == '__main__':
 	main()

@@ -35,6 +35,7 @@ def main():
 	sg.theme('Light Blue 2')
 	fig_ = ''
 
+
 	layout = [[sg.Text('Graph Diasplay')],
 			[sg.Button('Original',key='-org-'), sg.Button('Rewrite',key='-rewrite-'), sg.Button('Clear',key='-clear-'), sg.Cancel()]
 			]
