@@ -159,11 +159,16 @@ def show_extracted():
 	frame_graph = sg.Frame(
 					'Draw Graph', [
 					[sg.Button('Draw Selected Graph', key = '-draw-', disabled=True),
-					sg.Button('Draw All Graph', key = '-drawall-'), 
-					sg.Button('Clear Graph', key = '-clear-')]
+					sg.Button('Draw All Graph', key = '-draw_all-'), 
+					sg.Button('Clear Graph', key = '-clear-')],
+					[sg.Radio("Storage Modulus", group_id='item', key='-storage-')],
+					[sg.Radio("Loss Modulus", group_id='item', key='-loss-')],
+					[sg.Radio("tan_d", group_id='item', key='-tan_d-', default=True)],
+					[sg.Radio("Both Moduli", group_id='item', key='-both-')],
+					[sg.Radio("All data", group_id='item', key='-all-')]
 					])
 	extracted_layout=[
-			[sg.Listbox(var.temp_list, key='-temp-', size=(None, 3)),
+			[sg.Spin(var.temp_list, key='-temp-'),
 			sg.Button('Select',key='-select-')],
 			[sg.Table([[None for i in list(var.datalabel_dic.keys())]], headings=list(var.datalabel_dic.keys()), key='-table-', def_col_width=10, auto_size_columns=False, vertical_scroll_only=False, num_rows = len(var.moddata[var.temp_list[0]][0]))],
 			[frame_graph],
@@ -188,8 +193,13 @@ def show_extracted():
 			var.binaryfile = sg.popup_get_file('save', save_as=True, file_types=(("Binary Data File", ".pcl"),))
 			save_binary()
 		elif event == '-draw-':
-			draw_siglegraph()
-		elif event == '-drawall-':
+			# Select
+			if values['-storage-'] == True:
+				target = 
+			# 
+			draw_siglegraph(target)
+			
+		elif event == '-draw_all-':
 			draw_allgraphs()
 		elif event == '-clear-' and var.fig != '':
 			plt.close()
@@ -201,10 +211,10 @@ def save_binary():
 		pickle.dump(var.moddata, f)
 	return
 
-def draw_siglegraph():
+def draw_siglegraph(target):
 	var.fig, ax = plt.subplots()
 
-	ax.plot(var.moddata[temp][1]['Ang. Freq.'], var.moddata[temp][1]['Tan_d'], label='T='+str(var.temperature))
+	ax.plot(var.moddata[var.temperature][1]['Ang. Freq.'], var.moddata[var.temperature][1]['Tan_d'], label='T='+str(var.temperature))
 	ax.set_xlabel('Freq.')  # x軸ラベル
 	ax.set_ylabel(r'Tan $\delta$')  # y軸ラベル
 	ax.set_title('Measured Raw Data for T=' + str(var.temperature)) # グラフタイトル
