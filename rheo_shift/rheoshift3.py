@@ -32,10 +32,11 @@ def main():
 				main_window['-show_ext-'].update(disabled=False)
 		elif event == '-load-':
 			var.binaryfile = sg.popup_get_file('get file', file_types=(("Binary Data File", ".pcl"),))
-			with open(var.binaryfile, mode='rb') as f:
-				var.moddata = pickle.load(f)
-			main_window['-exdata-'].update(var.binaryfile)
-			main_window['-show_ext-'].update(disabled=False)
+			if var.binaryfile:
+				with open(var.binaryfile, mode='rb') as f:
+					var.moddata = pickle.load(f)
+				main_window['-exdata-'].update(var.binaryfile)
+				main_window['-show_ext-'].update(disabled=False)
 		elif event == '-show_ext-':
 			show_extracted()
 	main_window.close()
@@ -127,8 +128,6 @@ def show_orgdata():
 # Extract data
 #####
 def extract_csv():
-	# datalabel = list(var.datalabel_dic.keys())
-
 	for i, line in enumerate(var.csvlist):
 		if set(var.datalabel_dic.values()).issubset(set(line)) :
 			c_label = i
@@ -156,25 +155,60 @@ def extract_csv():
 def show_extracted():
 	var.temp_list = sorted(list(var.moddata.keys()))
 	# ウィンドウのレイアウト
-	frame_graph = sg.Frame(
+	frame_exfile = sg.Frame(
+		'Extracted data file', [
+									[sg.Text('Extracted File:', size = (12,1)), 
+     								sg.Text('not extracted yet', key = '-exdata-', relief=sg.RELIEF_RAISED, border_width=2, size = (66,1))],
+								    [sg.Button('Save Data', key = '-save-', size=(10,2))]
+								]
+							)
+	frame_table = sg.Frame(
+		'Extracted data table', [
+									[
+									sg.Column(
+										[
+										[sg.Listbox(var.temp_list, key='-temp-', size=(8,3))],
+										[sg.Button('Select',key='-select-', size=(8,2))]
+										]),
+									sg.Table(
+										[[None for i in list(var.datalabel_dic.keys())]], headings=list(var.datalabel_dic.keys()), key='-table-', def_col_width=12, auto_size_columns=False, vertical_scroll_only=False, num_rows = len(var.moddata[var.temp_list[0]][0]))
+									]
+								]
+							)
+	col_all = [
+				[sg.Radio("Storage Modulus", group_id='item', key='-storage_a-')],
+				[sg.Radio("Loss Modulus", group_id='item', key='-loss_a-')],
+				[sg.Radio("tan_d", group_id='item', key='-tan_d_a-', default=True)]
+				]
+	col_sel = [
+				[sg.Checkbox("Storage Modulus", key='-storage_s-')],
+				[sg.Checkbox("Loss Modulus", key='-loss_s-')],
+				[sg.Checkbox("tan_d", key='-tan_d_s-', default=True)]
+				]
+	frame_all = sg.Frame(
 					'Draw Graph', [
-					[sg.Button('Draw Selected Graph', key = '-draw-', disabled=True),
-					sg.Button('Draw All Graph', key = '-draw_all-'), 
-					sg.Button('Clear Graph', key = '-clear-')],
-					[sg.Radio("Storage Modulus", group_id='item', key='-storage-')],
-					[sg.Radio("Loss Modulus", group_id='item', key='-loss-')],
-					[sg.Radio("tan_d", group_id='item', key='-tan_d-', default=True)],
-					[sg.Radio("Both Moduli", group_id='item', key='-both-')],
-					[sg.Radio("All data", group_id='item', key='-all-')]
+						[
+						sg.Button('Draw All Graph', key = '-draw_all-', size=(20,5)), 
+      					sg.Column(col_all, justification='l')
+						]
+					])
+	frame_sel = sg.Frame(
+					'Draw Graph', [ 
+						[
+						sg.Button('Draw Selected Graph', key = '-draw-', disabled=True, size=(20,5)), 
+						sg.Column(col_sel, justification='l')
+						]
 					])
 	extracted_layout=[
-			[sg.Spin(var.temp_list, key='-temp-'),
-			sg.Button('Select',key='-select-')],
-			[sg.Table([[None for i in list(var.datalabel_dic.keys())]], headings=list(var.datalabel_dic.keys()), key='-table-', def_col_width=10, auto_size_columns=False, vertical_scroll_only=False, num_rows = len(var.moddata[var.temp_list[0]][0]))],
-			[frame_graph],
-			[sg.Button('Save Data', key = '-save-', disabled=True), sg.Button('Exit', key = '-exit-')]
-			]
-	ex_window = sg.Window('Extracted data table !', extracted_layout, resizable = True, finalize=True)
+				[frame_exfile],
+				[frame_table],
+				[frame_all, frame_sel],
+				[sg.Button('Exit', key = '-exit-', size=(10,2))]
+				]
+	ex_window = sg.Window('Check and Draw Graph for Extracted data', extracted_layout, finalize=True)
+
+	if var.binaryfile:
+		ex_window['-exdata-'].update(var.binaryfile)
 
 	while True:
 		event, values = ex_window.read()
@@ -188,19 +222,32 @@ def show_extracted():
 				ex_window['-save-'].update(disabled=False)
 				ex_window['-draw-'].update(disabled=False)
 			else:
-				value = sg.popup_error('Proper Temperature is not selected')
+				sg.popup_error('Proper Temperature is not selected')
 		elif event == '-save-':
 			var.binaryfile = sg.popup_get_file('save', save_as=True, file_types=(("Binary Data File", ".pcl"),))
 			save_binary()
+			ex_window['-exdata-'].update(var.binaryfile)
 		elif event == '-draw-':
-			# Select
-			if values['-storage-'] == True:
-				target = 
+			target = []
+			if values['-storage_s-'] == True:
+				target.append('Str. Mod.')
+			if values['-loss_s-'] == True:
+				target.append('Loss. Mod.')
+			if values['-tan_d_s-'] == True:
+				target.append('Tan_d')
+			print(target)
 			# 
 			draw_siglegraph(target)
-			
 		elif event == '-draw_all-':
-			draw_allgraphs()
+			target = []
+			if values['-storage_a-'] == True:
+				target.append('Str. Mod.')
+			if values['-loss_a-'] == True:
+				target.append('Loss. Mod.')
+			if values['-tan_d_a-'] == True:
+				target.append('Tan_d')
+			print(target)
+			draw_allgraphs(target)
 		elif event == '-clear-' and var.fig != '':
 			plt.close()
 
@@ -225,7 +272,7 @@ def draw_siglegraph(target):
 
 	return
 
-def draw_allgraphs():
+def draw_allgraphs(target):
 	var.fig, ax = plt.subplots()
 
 	for temp in var.temp_list:
