@@ -1,1 +1,1 @@
-from rheo_tts.Main import *
+from .MainWindow import * 
