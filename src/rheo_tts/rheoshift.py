@@ -154,7 +154,7 @@ def extract_csv():
 						break
 				tmp_dic[k] = tmp
 				if k == 'Temp.':
-					temp = round(np.mean(tmp), 1)
+					temp = round(sum(tmp)/len(tmp), 1)
 					var.temp_list.append(temp)
 			
 			horizontal = []
