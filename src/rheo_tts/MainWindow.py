@@ -4,7 +4,6 @@
 import PySimpleGUI as sg
 import csv
 import numpy as np
-import variables as var
 import matplotlib.pyplot as plt
 import pickle
 
@@ -14,26 +13,38 @@ import variables as var
 # Main Window
 #####
 def make_mainwindow():
-	frame_fileselect = sg.Frame('Select Data File',[
-							[sg.Text('not selected yet', 
+	frame_fileselect = sg.Frame('Select Original Data File',[
+							[sg.Text('File name:', size=(10,1)),
+							sg.Text('  -----', 
 							key = '-orgdata-', 
 							relief=sg.RELIEF_RAISED, 
 							border_width=2, 
-							size = (60,1))],
-							[sg.Text('', key = '-worksheet-')],
-							[sg.Button('Select File', key='-select_org-'),
-							sg.Button('Show Data', 
-		 					key='-show_org-', 
-							disabled=True)]
+							size = (50,1))],
+							[sg.Text('Sheet name:', size=(10,1)),
+							sg.Text('  -----', 
+							key = '-worksheet-', 
+							relief=sg.RELIEF_RAISED, 
+							border_width=2, 
+							size = (50,1))],
+							[sg.Text('File type:', size=(10,1)),
+							sg.Radio("Excel (*.xlsx)", group_id='type', key='-xlsx-', default=True),
+							sg.Radio("CSV   (*.csv)", group_id='type', key='-csv-'),
+							sg.Button('Read File', key='-read_org-')
+							]
 							]
 						)
-	frame_extracted = sg.Frame('Extracted Data File',[
-							[sg.Text('not extracted yet', 
+	frame_extracted = sg.Frame('Extract Data',[
+							[
+							sg.Text('File name: ', size=(10,1)),
+							sg.Text('not extracted yet', 
 							key = '-exdata-', 
 							relief=sg.RELIEF_RAISED, border_width=2, 
-							size = (60,1))],
+							size = (50,1))],
 							[sg.Button('Load Data File', 
 		  					key='-load-'),
+							sg.Button('Show Data', 
+		 					key='-show_org-', 
+							disabled=True),
 							sg.Button('Show Extracted', 
 		 					key='-show_ext-', 
 							disabled=True)]
@@ -55,7 +66,8 @@ def make_mainwindow():
 					[frame_extracted],
 					[frame_shift],
 					[sg.Button('Exit', 
-					key = '-exit-')]
+					key = '-exit-',
+					size=(10,1))]
 				]
 	return sg.Window('Main Window', main_layout)
 
@@ -69,7 +81,7 @@ def mainwindow():
 		### Main Window Procedure
 		if event in [sg.WIN_CLOSED, '-exit-']:
 			break
-		elif event == '-select_org-':
+		elif event == '-read_org-':
 			select_original(main_window, event, values)
 		elif event == '-show_org-' and var.csvfile != '':
 			show_original(main_window, event, values)
@@ -84,6 +96,17 @@ def mainwindow():
 	return
 
 def select_original(main_window, event, values):
+	main_window.hide()
+	show_orgdata()
+	main_window.un_hide()
+	if values['-xlsx-']:
+		var.csvfile = sg.popup_get_file('get file', file_types=(("Excel Files", ".xlsx"),))
+		wb = openpyxl.load_workbook(excelfile)
+		print(wb.sheetnames)
+		ws = wb['data']
+		for row in ws.rows:
+			print( [cell.value for cell in row] )
+	
 	var.csvfile = sg.popup_get_file('get file', file_types=(("CSV Files", ".csv"),))
 	with open(var.csvfile, encoding='utf8') as f:
 		var.csvlist = list(csv.reader(f))

@@ -3,7 +3,7 @@ import PySimpleGUI as sg
 import os
 import csv
 import openpyxl
-import pandas as pd
+# import pandas as pd
 
 def make_window():
 	# ステップ3. ウィンドウの部品とレイアウト
@@ -31,8 +31,9 @@ def main():
 			wb = openpyxl.load_workbook(excelfile)
 			print(wb.sheetnames)
 			ws = wb['data']
-			for row in ws.rows:
-			   print( [cell.value for cell in row] )
+			print(len(ws.rows[0]))
+			# for row in ws.rows:
+			#    print( [cell.value for cell in row] )
 
 			# with open(csvfilename, 'w', newline="") as csvfile:
 			#     writer = csv.writer(csvfile)
