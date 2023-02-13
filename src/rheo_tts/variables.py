@@ -1,4 +1,7 @@
-csvfile = ''
+filename=[]
+
+datalist = []
+
 datalabel_dic = {
 			'Temp.':'温度', 
 			'Ang. Freq.':'角周波数', 
