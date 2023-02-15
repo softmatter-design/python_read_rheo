@@ -2,20 +2,50 @@
 # -*- coding: utf-8 -*-
 #####
 import PySimpleGUI as sg
-# import openpyxl
-# import csv
 import numpy as np
 import matplotlib.pyplot as plt
 # import os
 import pickle
 
 import ShowOriginal as org
+import YourData as you
 import variables as var
 
 #####
 # Main Window
 #####
 def make_mainwindow():
+	# Menu
+	menu_def = [
+			['&OriginalData', 
+				['&ReadOriginal  Ctrl+o',
+				'&ShowOriginal  Ctrl+w'
+				],
+			],
+     		['&SaveData',
+				['&LoadYourData  Ctrl+l',
+				'&SaveYourData  Ctrl+s',
+				'Show&YourData  Ctrl+s'
+				],
+			],
+			['&Extract', 
+				['&Extract     Ctrl+e', 
+				'&ShowExtact  Ctrl+w'
+				]
+			],
+			['&TuneShift', 
+				['&Tune     Ctrl+t', 
+				'&ShowParameter  Ctrl+p'
+				]
+			],
+			['&Help', 
+    			['&About']
+			],
+			['E&xit',  
+    			['&Exit  Ctrl+x']
+			]
+			]
+	# Widgets
 	frame_fileselect = sg.Frame('Original Data File',[
 							[sg.Text('Original File:', size=(16,1), justification='c'),
 							sg.Text('not selected yet.', 
@@ -30,14 +60,15 @@ def make_mainwindow():
 							size=(15,1)),
 							sg.Button('Show Data', 
 		 					key='-show_org-', 
-							disabled=True, size=(15,1)),
+							disabled=True, 
+							size=(15,1)),
 							]
 							]
 						)
-	frame_savedatafile = sg.Frame('Data File',[
-							[sg.Text('Data File:', size=(16,1), justification='c'),
+	frame_savedatafile = sg.Frame('Your Data File',[
+							[sg.Text('Your Data File:', size=(16,1), justification='c'),
 							sg.Text('not saved yet.', 
-							key = '-savedata-', 
+							key = '-yourdata-', 
 							relief=sg.RELIEF_RAISED, 
 							border_width=2, 
 							size = (30,1),
@@ -48,7 +79,7 @@ def make_mainwindow():
 							size=(15,1)),
 							sg.Button('Save Data', 
 		 					key='-save_data-', 
-							disabled=True, size=(15,1)),
+							size=(15,1)),
 							]
 							]
 						)
@@ -62,7 +93,8 @@ def make_mainwindow():
 							justification='c')],
 							[sg.Button('Show Extracted', 
 		 					key='-show_ext-', 
-							disabled=True, size=(15,1))]
+							disabled=True, 
+							size=(15,1))]
 							]
 						)
 	frame_shift = sg.Frame('Tune Shift Parameters',[
@@ -75,20 +107,45 @@ def make_mainwindow():
 							justification='c')],
 							[sg.Button('Tune parameters', 
 		  					key='-tune-', 
-							disabled=True, size=(15,1)
+							disabled=True, 
+							size=(15,1)
 							)]
 							]
 						)
+	# Main Window
 	main_layout = [
-					[frame_fileselect],
-					[frame_savedatafile],
-					[frame_extracted],
-					[frame_shift],
+					[sg.MenuBar(menu_def)],
+					[frame_fileselect,
+					frame_savedatafile],
+					[frame_extracted,
+					frame_shift],
 					[sg.Button('Exit', 
 					key = '-exit-',
 					size=(15,1))]
 				]
-	return sg.Window('Main Window', main_layout)
+	#
+	window = sg.Window('Main Window', main_layout, finalize=True)
+	window.bind("<Control-Key-o>", "ReadOriginal  Ctrl+o")
+	window.bind("<Control-Key-w>", "ReadOriginal  Ctrl+w")
+
+
+	window.bind("<Control-Key-l>", "ReadOriginal  Ctrl+l")
+	window.bind("<Control-Key-s>", "ReadOriginal  Ctrl+s")
+
+	window.bind("<Control-Key-x>", "ReadOriginal  Ctrl+x")
+
+	window.bind("<Control-Key-c>", "ReadOriginal  Ctrl+c")
+	
+	window.bind("<Control-Key-t>", "ReadOriginal  Ctrl+t")
+	
+	window.bind("<Control-Key-y>", "ReadOriginal  Ctrl+y")
+	window.bind("<Control-Key-z>", "ReadOriginal  Ctrl+z")
+	window.bind("<Control-Key-g>", "ReadOriginal  Ctrl+g")
+	window.bind("<Control-Key-j>", "ReadOriginal  Ctrl+j")
+	window.bind("<Control-Key-k>", "ReadOriginal  Ctrl+k")
+
+	window.bind("<Control-Key-i>", "ReadOriginal  Ctrl+i")
+	return window
 
 #####
 def mainwindow():
@@ -97,6 +154,7 @@ def mainwindow():
 	# Main Loop
 	while True:
 		event, values = main_window.read()
+		print(event)
 		### Main Window Procedure
 		if event in [sg.WIN_CLOSED, '-exit-']:
 			break
@@ -106,8 +164,10 @@ def mainwindow():
 		elif event == '-show_org-' and var.datalist != '':
 			org.show_original(main_window)
 		# Target Data file
-		elif event == '-load-':
-			load_binary(main_window, event, values)
+		elif event == '-load_data-':
+			you.load_binary(main_window)
+		elif event == '-save_data-':
+			you.save_binary(main_window)
 		# Extract Data from Original
 		elif event == '-show_ext-':
 			var.temp_list = sorted(list(var.moddata.keys()))
@@ -117,9 +177,6 @@ def mainwindow():
 			tune_parameters(main_window, event, values)
 	main_window.close()
 	return
-
-
-
 
 
 
@@ -312,10 +369,10 @@ def show_extracted():
 
 	ex_window.close()
 
-def save_binary():
-	with open(var.binaryfile, mode='wb') as f:
-		pickle.dump(var.moddata, f)
-	return
+# def save_binary():
+# 	with open(var.binaryfile, mode='wb') as f:
+# 		pickle.dump(var.moddata, f)
+# 	return
 
 def draw_siglegraph(target, temperature):
 	if target == 'tand':
@@ -411,15 +468,15 @@ def draw_allgraphs(target):
 
 
 
-def load_binary(main_window, event, values):
-	var.binaryfile = sg.popup_get_file('get file', file_types=(("Binary Data File", ".pcl"),))
-	if var.binaryfile:
-		with open(var.binaryfile, mode='rb') as f:
-			var.moddata = pickle.load(f)
-		main_window['-exdata-'].update(var.binaryfile)
-		main_window['-show_ext-'].update(disabled=False)
-		main_window['-tune-'].update(disabled=False)
-	return
+# def load_binary(main_window, event, values):
+# 	var.binaryfile = sg.popup_get_file('get file', file_types=(("Binary Data File", ".pcl"),))
+# 	if var.binaryfile:
+# 		with open(var.binaryfile, mode='rb') as f:
+# 			var.moddata = pickle.load(f)
+# 		main_window['-exdata-'].update(var.binaryfile)
+# 		main_window['-show_ext-'].update(disabled=False)
+# 		main_window['-tune-'].update(disabled=False)
+# 	return
 
 def tune_parameters(main_window, event, values):
 	if var.binaryfile:

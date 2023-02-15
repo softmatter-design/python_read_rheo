@@ -2,17 +2,40 @@ filename=[]
 
 datalist = []
 
+binaryfile = ''
+
+yourdata_dic = {
+				# 'originaldata': , 
+				# 'extracteddata': ,
+				# 'parameters': 
+				}
+originaldata = {
+				# 'filename': ,
+                # 'sheetname': ,
+                # 'originaldata_list': ,
+                # 'comment':
+				}
+extracteddata = {
+				# 'temp_list': ,
+				# 'extracted_dic':
+				}
+parameters = {
+				# 'shift_dic': ,
+                # 'shift_list' ,
+				}
+
+
 datalabel_dic = {
 			'Temp.':'温度', 
 			'Ang. Freq.':'角周波数', 
 			'Str. Mod.':'貯蔵弾性率', 
 			'Loss Mod.':'損失弾性率', 
-			'Tan_d':'損失正接',
+			'Tan_d':'損失正接'
 			}
 skip = 1
 
 temp_list = []
-binaryfile = ''
+
 moddata = {}
 
 shift_dic= {}

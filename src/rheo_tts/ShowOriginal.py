@@ -18,7 +18,9 @@ def select_original(main_window):
 	return
 
 def readfile():
-	targetfile = sg.popup_get_file('Select Original Datafile !', file_types=(("Excel Files", ".xlsx"),("CSV Files", ".csv")), size=(60,10))
+	targetfile = sg.popup_get_file('Select Original Datafile !', 
+				file_types=(("Excel Files", ".xlsx"),("CSV Files", ".csv")), 
+				size=(60,10))
 
 	if targetfile:
 		if os.path.splitext(targetfile)[1] == '.xlsx':
@@ -118,7 +120,9 @@ def show_orgdata():
 				]
 	frame_savecommennt = sg.Frame(
 		'Make Comment', [
-			[sg.Multiline(default_text='You can erase and input multi lines Comment here!\nYou can hit return key for new line', size=(100, 10), key='-comment-'),
+			[sg.Multiline('You can erase and input multi lines Comment here!\nYou can hit return key for new line', 
+		 	size=(100, 10), 
+			key='-comment-'),
 			sg.Column(col_submit, justification='l')]
 		]
 	)
@@ -142,8 +146,8 @@ def show_orgdata():
 			comment = values['-comment-']
 			orgdata_window['-com_submit-'].update('   Submitted !', text_color='red')
 		elif event == '-paste-':
-			newtext = values['-comment-'] + '\n' + copytext
-			orgdata_window['-comment-'].update(newtext)
+			# newtext = values['-comment-'] + '\n' + copytext
+			orgdata_window['-comment-'].update(sg.clipboard_get())
 		elif event == 'Copy':
 			copytext = ''
 			for num in values['-data_table-']:
@@ -151,7 +155,7 @@ def show_orgdata():
 					if cell not in ['', None]:
 						copytext += str(cell) + '\t'
 				copytext += '\n'
-			print(copytext)
+			sg.clipboard_set(copytext)
 	orgdata_window.close()
 	return
 
