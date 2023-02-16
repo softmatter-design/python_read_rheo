@@ -1,29 +1,26 @@
-filename=[]
-
-datalist = []
-
 binaryfile = ''
 
-yourdata_dic = {
-				# 'originaldata': , 
-				# 'extracteddata': ,
-				# 'parameters': 
-				}
+
 originaldata = {
-				# 'filename': ,
-                # 'sheetname': ,
-                # 'originaldata_list': ,
-                # 'comment':
+				'filename': '',
+                'sheetname': '',
+                'originaldata_list': [],
+                'comment': 'You can erase and input multi lines Comment here!\nYou can hit return key for new line'
 				}
 extracteddata = {
-				# 'temp_list': ,
-				# 'extracted_dic':
+				'temp_list': [],
+				'extracted_dic': {}
 				}
 parameters = {
-				# 'shift_dic': ,
-                # 'shift_list' ,
+				'shift_dic': {},
+                'shift_list': [],
 				}
 
+yourdata_dic = {
+				'originaldata': originaldata, 
+				'extracteddata': extracteddata,
+				'parameters': parameters
+				}
 
 datalabel_dic = {
 			'Temp.':'温度', 

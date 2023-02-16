@@ -55,13 +55,13 @@ def make_mainwindow():
 							size = (30,1),
 							justification='c')
 							],
-							[sg.Button('Read File', 
+							[sg.Button('Read Original', 
 		  					key='-read_org-', 
-							size=(15,1)),
-							sg.Button('Show Data', 
+							size=(12,1)),
+							sg.Button('Show Original', 
 		 					key='-show_org-', 
-							disabled=True, 
-							size=(15,1)),
+							# disabled=True, 
+							size=(12,1)),
 							]
 							]
 						)
@@ -76,10 +76,13 @@ def make_mainwindow():
 							],
 							[sg.Button('Load Data', 
 		  					key='-load_data-', 
-							size=(15,1)),
+							size=(12,1)),
 							sg.Button('Save Data', 
 		 					key='-save_data-', 
-							size=(15,1)),
+							size=(12,1)),
+							sg.Button('Show Data', 
+		 					key='-show_data-', 
+							size=(12,1))
 							]
 							]
 						)
@@ -93,8 +96,8 @@ def make_mainwindow():
 							justification='c')],
 							[sg.Button('Show Extracted', 
 		 					key='-show_ext-', 
-							disabled=True, 
-							size=(15,1))]
+							# disabled=True, 
+							size=(12,1))]
 							]
 						)
 	frame_shift = sg.Frame('Tune Shift Parameters',[
@@ -107,8 +110,8 @@ def make_mainwindow():
 							justification='c')],
 							[sg.Button('Tune parameters', 
 		  					key='-tune-', 
-							disabled=True, 
-							size=(15,1)
+							# disabled=True, 
+							size=(12,1)
 							)]
 							]
 						)
@@ -121,7 +124,7 @@ def make_mainwindow():
 					frame_shift],
 					[sg.Button('Exit', 
 					key = '-exit-',
-					size=(15,1))]
+					size=(12,1))]
 				]
 	#
 	window = sg.Window('Main Window', main_layout, finalize=True)
@@ -154,34 +157,66 @@ def mainwindow():
 	# Main Loop
 	while True:
 		event, values = main_window.read()
-		print(event)
 		### Main Window Procedure
 		if event in [sg.WIN_CLOSED, '-exit-']:
 			break
+		# elif event:
+		# 	if flag1 != []:
+		# 		print('ooo')
+		# 	else:
+		# 		pass
+		# 	
+			# main_window['-show_org-'].update(disabled=False)
+		# elif var.binaryfile != '':
+		# 	main_window['-exdata-'].update(var.binaryfile)
+		# 	main_window['-show_ext-'].update(disabled=False)
+
 		# Concerning Original Data File
 		elif event == '-read_org-':
-			org.select_original(main_window)
-		elif event == '-show_org-' and var.datalist != '':
-			org.show_original(main_window)
+			main_window.hide()
+			org.select_original()
+			flag(main_window)
+			main_window.un_hide()
+		elif event == '-show_org-':
+			main_window.hide()
+			org.show_original()
+			main_window.un_hide()
+			
 		# Target Data file
 		elif event == '-load_data-':
-			you.load_binary(main_window)
+			main_window.hide()
+			you.load_binary()
+			flag(main_window)
+			main_window['-yourdata-'].update('Already Selected !', text_color='red')
+			main_window.un_hide()
 		elif event == '-save_data-':
-			you.save_binary(main_window)
+			main_window.hide()
+			you.save_binary()
+			main_window['-yourdata-'].update('Already Selected !', text_color='red')
+			main_window.un_hide()
+		elif event == '-show_data-':
+			main_window.hide()
+			you.show_yours()
+			main_window.un_hide()
+
 		# Extract Data from Original
 		elif event == '-show_ext-':
+			main_window.hide()
 			var.temp_list = sorted(list(var.moddata.keys()))
 			show_extracted()
+			main_window.un_hide()
 		# Modify Shift Parameters
 		elif event == '-tune-':
+			main_window.hide()
 			tune_parameters(main_window, event, values)
+			main_window.un_hide()
 	main_window.close()
 	return
 
-
-
-
-
+def flag(main_window):
+	if var.yourdata_dic['originaldata']['originaldata_list'] !=[]:
+		main_window['-orgdata-'].update('Already Selected !', text_color='red')
+	return
 
 
 
