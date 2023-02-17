@@ -85,7 +85,7 @@ def show_yours():
 	while True:
 		event, values = yours_window.read()
 		if event in [sg.WIN_CLOSED, '-exit-']:
-			# var.yourdata_dic['originaldata']['comment'] = values['-comment-']
+			# sg.popup_menu(['',['ccc', 'ddd']])
 			break
 		elif event == '-show_org-':
 			org.show_original()

@@ -1,6 +1,5 @@
 binaryfile = ''
 
-
 originaldata = {
 				'filename': '',
                 'sheetname': '',
@@ -9,11 +8,12 @@ originaldata = {
 				}
 extracteddata = {
 				'temp_list': [],
+                'extracted_h_dic': {},
 				'extracted_dic': {}
 				}
 parameters = {
 				'shift_dic': {},
-                'shift_list': [],
+                'shift_list': []
 				}
 
 yourdata_dic = {
@@ -31,9 +31,9 @@ datalabel_dic = {
 			}
 skip = 1
 
-temp_list = []
+# temp_list = []
 
-moddata = {}
+# moddata = {}
 
 shift_dic= {}
 shiftfile = ''

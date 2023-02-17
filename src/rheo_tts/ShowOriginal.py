@@ -46,7 +46,9 @@ def selectsheet(sheetlist):
 		elif event == '-select-':
 			worksheet = values['-sheet-'][0]
 			x, y = sub_selectwindow.current_location()
-			value = sg.popup(f'Selected work sheet: "{worksheet}"', location = (x+200, y-100), no_titlebar=True)
+			value = sg.popup(f'Selected work sheet: "{worksheet}"', 
+		    				location = (x+200, y-100), 
+							no_titlebar=True)
 			if value == 'OK':
 				break
 	sub_selectwindow.close()
