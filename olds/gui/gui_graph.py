@@ -6,6 +6,13 @@ import matplotlib.pyplot as plt
 import PySimpleGUI as sg
 import random
 
+def make_dpi_aware():
+  import ctypes
+  import platform
+  if int(platform.release()) >= 8:
+    ctypes.windll.shcore.SetProcessDpiAwareness(True)
+    
+
 def org_data():
 	x = [i for i in range(100)]
 	y = [np.sin(i*np.pi/20.) for i in range(100)]
@@ -18,6 +25,7 @@ def set_data():
 
 def make_fig(data):
 	fig, ax = plt.subplots()
+
 	ax.plot(data[0], data[1])
 	ax.set_xlabel('x')  # x軸ラベル
 	ax.set_ylabel(r'y')  # y軸ラベル
@@ -32,7 +40,8 @@ def del_plot(fig):
 	plt.close()
 
 def main():
-	sg.theme('Light Blue 2')
+	make_dpi_aware()
+
 	fig_ = ''
 
 	layout = [[sg.Text('Graph Diasplay')],

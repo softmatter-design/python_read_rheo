@@ -12,10 +12,17 @@ class Toolbar(NavigationToolbar2Tk):
     def __init__(self, *args, **kwargs):
         super(Toolbar, self).__init__(*args, **kwargs)
 
+def set_scale(scale):
+
+    root = sg.tk.Tk()
+    root.tk.call('tk', 'scaling', scale)
+    root.destroy()
 
 # figureを作成する関数
 def draw_plot():
     fig = plt.figure()
+    set_scale(fig.dpi/72)
+    
     ax = fig.add_subplot()
     x = np.linspace(0, 2 * np.pi, 100)
     y = np.random.rand(len(x))

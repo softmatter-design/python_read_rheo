@@ -8,6 +8,7 @@ import os
 import pickle
 
 import ShowOriginal as org
+import Extract as ext
 import variables as var
 
 # Your Data
@@ -89,6 +90,8 @@ def show_yours():
 			break
 		elif event == '-show_org-':
 			org.show_original()
+		elif event == '-show_ext-':
+			ext.show_extracted()
 		# elif event == 'Copy':
 		# 	copytext = ''
 		# 	for num in values['-data_table-']:

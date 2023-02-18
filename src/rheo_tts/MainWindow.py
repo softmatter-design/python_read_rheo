@@ -10,6 +10,7 @@ import pickle
 import ShowOriginal as org
 import YourData as you
 import Extract as ext
+import Shift as sft
 import variables as var
 
 #####
@@ -153,6 +154,8 @@ def make_mainwindow():
 
 #####
 def mainwindow():
+	# 
+	make_dpi_aware()
 	# Main Window
 	main_window = make_mainwindow()
 	# Main Loop
@@ -198,7 +201,7 @@ def mainwindow():
 		# Modify Shift Parameters
 		elif event == '-tune-':
 			main_window.hide()
-			tune_parameters(main_window, event, values)
+			sft.show_tune()
 			main_window.un_hide()
 	main_window.close()
 	return
@@ -227,6 +230,11 @@ def tune_parameters(main_window, event, values):
 	main_window.un_hide()
 	return
 
-
+def make_dpi_aware():
+  import ctypes
+  import platform
+  if int(platform.release()) >= 8:
+    ctypes.windll.shcore.SetProcessDpiAwareness(True)
+    
 if __name__ == '__main__':
 	mainwindow()

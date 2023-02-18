@@ -36,9 +36,13 @@ skip = 1
 # moddata = {}
 
 shift_dic= {}
-shiftfile = ''
-c1 = 17.44
-c2 = 51.60
-tg = 300.0
 param_list = []
-ref_temp = 0.
+wlf_param = {
+			'c1': 17.44,
+			'c2': 51.60,
+			'tg': 300.0,
+            'bt': 1.0,
+            'ref_temp': 0.
+			}
+
+
