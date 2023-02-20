@@ -31,18 +31,16 @@ datalabel_dic = {
 			}
 skip = 1
 
-# temp_list = []
-
-# moddata = {}
+temp_list = []
 
 shift_dic= {}
 param_list = []
 wlf_param = {
 			'c1': 17.44,
 			'c2': 51.60,
-			'tg': 300.0,
-            'bt': 1.0,
-            'ref_temp': 0.
+			't0': 300.0,
 			}
 
 
+bt = 1.0
+ref_temp = 0.

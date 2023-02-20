@@ -17,9 +17,9 @@ def extract():
 #####
 def extract_datalist():
 	datalist = var.yourdata_dic['originaldata']['originaldata_list']
-	temp_list = []
 	extracted_h_dic = {}
 	extracted_dic = {}
+	temperature = []
 	for i, line in enumerate(datalist):
 		if set(var.datalabel_dic.values()).issubset(set(line)) :
 			c_label = i
@@ -36,7 +36,7 @@ def extract_datalist():
 				tmp_dic[k] = tmp
 				if k == 'Temp.':
 					temp = round(sum(tmp)/len(tmp), 1)
-					temp_list.append(temp)
+					temperature.append(temp)
 			
 			extacted_list = []
 			vertical = list(tmp_dic.values())
@@ -44,8 +44,9 @@ def extract_datalist():
 				extacted_list.append([vertical[i][col] for i in range(len(vertical))])
 			extracted_h_dic[temp] = extacted_list
 			extracted_dic[temp] = tmp_dic
+	var.temp_list = sorted(temperature)
 	# Finalize
-	var.extracteddata['temp_list'] = sorted(temp_list)
+	var.extracteddata['temp_list'] = sorted(var.temp_list)
 	var.extracteddata['extracted_h_dic'] = extracted_h_dic
 	var.extracteddata['extracted_dic'] = extracted_dic
 
@@ -54,7 +55,7 @@ def extract_datalist():
 
 def show_extracted():
 	fig = ''
-	temp_list = var.yourdata_dic['extracteddata']['temp_list']
+	# temp_list = var.yourdata_dic['extracteddata']['temp_list']
 	extracted_h_dic = var.yourdata_dic['extracteddata']['extracted_h_dic']
 	# ウィンドウのレイアウト
 	cond_label = list(var.datalabel_dic.keys())
@@ -78,7 +79,7 @@ def show_extracted():
 									[
 									sg.Column(
 											[
-											[sg.Listbox(temp_list, 
+											[sg.Listbox(var.temp_list, 
 											enable_events=True, 
 											key='-temp-', 
 											size=(8,3))]
@@ -91,7 +92,7 @@ def show_extracted():
 											def_col_width=12, 
 											auto_size_columns=False, 
 											vertical_scroll_only=False, 
-											num_rows = len(extracted_h_dic[temp_list[0]])
+											num_rows = len(extracted_h_dic[var.temp_list[0]])
 											)
 									]
 								]
@@ -223,11 +224,11 @@ def draw_siglegraph(target, temperature):
 	return fig
 
 def draw_allgraphs(target):
-	temp_list = var.yourdata_dic['extracteddata']['temp_list']
+	# temp_list = var.yourdata_dic['extracteddata']['temp_list']
 	extracted_dic = var.yourdata_dic['extracteddata']['extracted_dic']
 
 	fig, ax = plt.subplots()
-	for temperature in temp_list:
+	for temperature in var.temp_list:
 		ax.plot(extracted_dic[temperature]['Ang. Freq.'], 
 				extracted_dic[temperature][target], 
 				label='T='+str(temperature))
