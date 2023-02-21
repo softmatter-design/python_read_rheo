@@ -3,47 +3,34 @@
 #####
 import PySimpleGUI as sg
 import matplotlib.pyplot as plt
-import pickle
 
 import variables as var
 
 #####
 def show_tune():
 	fig = ''
-	# temp_list = var.yourdata_dic['extracteddata']['temp_list']
-	c1 = var.wlf_param['c1']
-	c2 = var.wlf_param['c2']
-	t0 = var.wlf_param['t0']
+	var.extracteddata = var.yourdata_dic['extracteddata']
+	var.temp_list = var.extracteddata['temp_list']
 
 	# ウィンドウのレイアウト
-	col_param = [
-					[sg.Text('C1:', size = (8,1)), 
-                    sg.InputText(c1, key = '-input_c1-', size = (6,1))], 
-					[sg.Text('C2:', size = (8,1)), 
-                    sg.InputText(c2, key = '-input_c2-', size = (6,1))],
-					[sg.Text('T0 (K):', size = (8,1)), 
-                    sg.InputText(t0, key = '-input_t0-', size = (6,1))]
-				]
-	col_text = [
-				[sg.Text('Default parameter are C1 = 17.44 and C2 = 51.6.', 
-	            size = (42,1))],
-				[sg.Text('With above parameters, T0 should be set as Tg in Kervin.', size = (42,1))]
-				]
+	col_param = sg.Column([
+							[sg.Text('c1', size = (8,1)), 
+							sg.InputText(var.wlf_param["c1"], key = '-input_c1-', size = (6,1))], 
+							[sg.Text('C2:', size = (8,1)), 
+							sg.InputText(var.wlf_param["c2"], key = '-input_c2-', size = (6,1))],
+							[sg.Text('T0 (C):', size = (8,1)), 
+							sg.InputText(var.wlf_param["t0"], key = '-input_t0-', size = (6,1))]
+						], justification='c')
+	col_text = sg.Column([
+				[sg.Text('Default parameter are C1 = 17.44 and C2 = 51.6.', size = (50,1))],
+				[sg.Text('With this parameter set, T0 should be set as Tg in Celsius.', size = (50,1))]
+				], justification='c')
 	frame_wlf = sg.Frame('Initial Guess by WLF',
 						[
-							[
-							sg.Column(col_param, justification='c'), 
-							sg.Column(col_text, justification='l')
-							],
-							[
-							sg.Button('Guess aT with above Parameters', 
+							[col_param, col_text], 
+							[sg.Button('Guess aT using Parameters', 
 		  					key = '-wlf-', 
-							size=(28,1)),
-							sg.Button('Plot "aT vs. Temp."', 
-		 					key = '-plot_at-', 
-							size=(28,1), 
-							disabled=True)
-							]
+							size=(30, 2))]
 						]
 						)
 	frame_parameters = sg.Frame('Updated Parameters',
@@ -56,17 +43,28 @@ def show_tune():
 										auto_size_columns=False, 
 										vertical_scroll_only=True, 
 										num_rows = len(var.temp_list), 
-										justification='center')
+										justification='center')],
+									[sg.Button('Plot Updated', 
+										key = '-plot_ud-', 
+										size=(30,1), 
+										disabled=True),
+									sg.Button('aT and bT vs. Temp.', 
+										key = '-plot_at-', 
+										size=(30,1), 
+										disabled=True)]
 									]
-								]
 								)
 	col_select = [
 					[
 					sg.Text('Select Reference Temperature'),
 					sg.Listbox(var.temp_list, key='-temp-', size=(8,3)),
-					sg.Button('Select and Move',
-	                            key='-select-', 
-				                size=(20,2), 
+					sg.Button('Tune aT',
+	                            key='-tune_at-', 
+				                size=(12,1), 
+				                disabled=True),
+					sg.Button('Tune bT',
+	                            key='-tune_bt-', 
+				                size=(12,1), 
 				                disabled=True)
 					]
 				]
@@ -97,43 +95,53 @@ def show_tune():
 			var.wlf_param['c2'] = float(values['-input_c2-'])
 			var.wlf_param['t0'] = float(values['-input_t0-'])
 			fig = wlf_t0()
+			shift_window['-plot_ud-'].update(disabled=False)
 			shift_window['-plot_at-'].update(disabled=False)
-			shift_window['-select-'].update(disabled=False)
+			shift_window['-tune_at-'].update(disabled=False)
+			shift_window['-tune_bt-'].update(disabled=False)
 			shift_window['-param-'].update(var.param_list)
+		elif event == '-plot_ud-':
+			if fig != '':
+				plt.close()
+			fig = plot_freq()	
 		elif event == '-plot_at-':
 			if fig != '':
 				plt.close()
 			fig = plot_at()	
-		elif event == '-select-' and values['-temp-'] != []: 
+		elif event == '-tune_at-' and values['-temp-'] != []: 
+			shift_window['-param-'].update(var.param_list)
 			if fig != '':
 				plt.close()
 			shift_window.hide()
 			var.ref_temp = values['-temp-'][0]
 			move_man()
 			shift_window.un_hide()
+			shift_window['-param-'].update(var.param_list)
 	plt.close('all')
 	shift_window.close()
 	return
 
 def wlf_t0():
-	c1 = var.wlf_param['c1']
-	c2 = var.wlf_param['c2']
-	t0 = var.wlf_param['t0']
-	extracteddata = var.yourdata_dic['extracteddata']
-	# temp_list = var.yourdata_dic['extracteddata']['temp_list']
-	var.param_list = []
+	tmp = []
+	for temperature in var.temp_list:
+		at = 10**(-1*var.wlf_param["c1"]*(temperature - var.wlf_param["t0"])/
+	    							(var.wlf_param["c2"] + temperature - var.wlf_param["t0"]))
+		var.shift_dic[temperature] = {'at': at, 'bt': var.bt}
+		tmp.append([temperature, f"{at:.2E}", var.bt])
+		var.param_list = tmp
+	fig = plot_freq()
+	return fig
 
+def plot_freq():
 	fig, ax = plt.subplots()
 	for temperature in var.temp_list:
-		at = 10**(-1*c1*(temperature + 273.2 - t0)/(c2 + temperature + 273.2 - t0))
-		var.shift_dic[temperature] = {'at': at, 'bt': var.bt}
-		var.param_list.append([temperature, f"{at:.2E}", var.bt])
-		mfreq = [freq*at for freq in extracteddata['extracted_dic'][temperature]['Ang. Freq.']]
-		ax.plot(mfreq, extracteddata['extracted_dic'][temperature]['Tan_d'], 
+		at = var.shift_dic[temperature]['at']
+		mfreq = [freq*at for freq in var.extracteddata['extracted_dic'][temperature]['Ang. Freq.']]
+		ax.plot(mfreq, var.extracteddata['extracted_dic'][temperature]['Tan_d'], 
 	            label='T='+str(temperature))
 	ax.set_xlabel('Freq.')
 	ax.set_ylabel(r'Tan $\delta$')
-	ax.set_title(f'Guess for all Temperature for T0={t0:}')
+	ax.set_title(f'Guess for all Temperature for T0={var.wlf_param["t0"]:}')
 	ax.semilogx(base=10)
 	ax.semilogy(base=10)
 	ax.legend(borderaxespad=0, ncol=2)
@@ -141,36 +149,40 @@ def wlf_t0():
 	return fig
 
 def plot_at():
-	# temp_list = var.yourdata_dic['extracteddata']['temp_list']
-	t0 = var.wlf_param['t0']
-
 	fig, ax = plt.subplots()
 	at_list = [var.shift_dic[temp]['at'] for temp in var.temp_list]
 	bt_list = [var.shift_dic[temp]['bt'] for temp in var.temp_list]
 	ax.plot(var.temp_list, at_list, label=r'a$_{T}$')
 	ax.plot(var.temp_list, bt_list, label=r'b$_{T}$')
-	ax.set_xlabel('Temperature')  # x軸ラベル
-	ax.set_ylabel(r'a$_{T}$')  # y軸ラベル
-	ax.set_title(f'aT for T0={t0:}') # グラフタイトル
+	ax.set_xlabel('Temperature')
+	ax.set_ylabel(r'a$_{T}$')
+	ax.set_title(f'aT for T0={var.wlf_param["t0"]:}')
 	ax.semilogy(base=10)
 	ax.legend(borderaxespad=0, ncol=2)
 	plt.show(block=False)
 	return fig
 
+
+
+
+
+
+
+
+
+
+
+
+
 # tune manually
 def move_man():
+	fig = ''
 	mod_param()
-	# temp_list = var.yourdata_dic['extracteddata']['temp_list']
 	lower_temp = [x for x in var.temp_list if x < var.ref_temp]
 	upper_temp = [x for x in var.temp_list if x > var.ref_temp]
 
 	frame_reftemp = sg.Frame('Modified Parameters',
 							[
-								[sg.Text('Reference Temperature = ' 
-		                            + str(var.ref_temp), 
-		  						relief=sg.RELIEF_RAISED, 
-								border_width=2, 
-								size = (30,1))],
 								[sg.Table(
 								var.param_list, 
 								headings=['Temperature (C)', 'aT', 'bT'], 
@@ -182,56 +194,63 @@ def move_man():
 								)],
 							]	
 			  				)
-	col_upper = [
-					[
-					sg.Text('Upper'),
-					sg.Listbox(upper_temp, key='-temp_u-', size=(8,3)),
-					sg.Button('Move Upper Data', key='-upper-', size=(10,1))
-					]
-				]
-	col_lower = [
-					[
-					sg.Text('Lower'),
-      				sg.Listbox(lower_temp, key='-temp_l-', size=(8,3)),
-					sg.Button('Move Lower Data', key='-lower-', size=(10,1))
-					]
-				]
+	col_upper = sg.Column([
+					[sg.Text('Upper')],
+					[sg.Listbox(upper_temp, key='-temp_u-', size=(6,3))],
+					[sg.Button('Move Upper Data', key='-upper-', size=(20,1))]
+				], justification='c')
+	col_lower = sg.Column([
+					[sg.Text('Lower')],
+      				[sg.Listbox(lower_temp, key='-temp_l-', size=(6,3))],
+					[sg.Button('Move Lower Data', key='-lower-', size=(20,1))]
+				], justification='c')
+	col_reference = sg.Column([
+						[sg.Text('Reference Temperature')],
+		                [sg.Text(str(var.ref_temp))]
+					], justification='c')
 	frame_target = sg.Frame('Target Temperature',
 								[
-									[
-									sg.Column(col_upper),
-	  								sg.Column(col_lower)
-									]
+									[col_upper, col_reference, col_lower]
 								]
 							)
 	frame_move = sg.Frame('Tune shift parameter manually !!',
 			     			[
+							[sg.Text('Move Target Temperature: '),
+							sg.Text('', key='-t_temp-')],
+							[sg.Text('Previous aT: '),
+							sg.Text('', key='-p_at-')],
 							[sg.Text("Fine", size=(5,1)),
-							sg.Slider(range=(1.0,9.99),
-									default_value = 1.0,
-									resolution=0.01,
-									orientation='h',
-									size=(50, 4),
-									enable_events=True,
-									key='-slider1-')],
+							sg.Slider(range=(-1.,1.),
+								default_value = 0.0,
+								resolution=0.01,
+								orientation='h',
+								disable_number_display=True,
+								size=(50, None),
+								enable_events=True,
+								key='-slider1-')],
 							[sg.Text("Rough", size=(5,1)),
-								sg.Slider(range=(-50,50),
-									default_value =0,
-									resolution=1,
-									orientation='h',
-									size=(50, 6),
-									enable_events=True,
-									key='-slider2-')],
-							[ sg.InputText(1.0, size=(5,1), key='-input1-'), 
-							sg.Text("E", size=(1,1)),
-							sg.InputText(0.0, size=(6,1), key='-input2-')]
+							sg.Slider(range=(-50.,50.),
+								default_value =0.,
+								resolution=1.,
+								orientation='h',
+								disable_number_display=True,
+								size=(50, None),
+								enable_events=True,
+								key='-slider2-')],
+							# [ sg.InputText(1.0, size=(5,1), key='-input1-'), 
+							# sg.Text("E", size=(1,1)),
+							# sg.InputText(0.0, size=(6,1), key='-input2-')],
+							[sg.Text('Modified aT: '),
+							sg.InputText('', key='-mod_at-', size=(8,1))],
+							[sg.Button('Move', key='-move-', size=(20,1)),
+							sg.Button('Set', key='-set-', size=(20,1))
+							]
 							]
 							)
 	move_layout=[
 				[frame_reftemp],
 				[frame_target],
 				[frame_move],
-				[sg.Button('plot', key = '-plot-', size=(8,1))],
 				[sg.Button('Exit', key = '-exit-', size=(8,1))]
 				]
 	move_window = sg.Window('Tune the shift parameters', move_layout, finalize=True)
@@ -240,23 +259,44 @@ def move_man():
 		event, values = move_window()
 		if event in [sg.WIN_CLOSED, '-exit-']:
 			break
-		elif event == '-plot-':
-			plot_mod()
 		elif event == '-upper-' and values['-temp_u-'] !=[]:
+			if fig != '':
+				plt.close()
 			target = values['-temp_u-'][0]
-
-			plot_mod(target)
-		# elif event == "-slider1-" or event == "-slider2-":
-		# 	shift_window['-input1-']. Update(values['-slider1-'])
-		# 	shift_window['-input2-']. Update(values['-slider2-'])
-		# 	val1 = float(values['-slider1-'])*10**float(values['-slider2-'])
-		# 	print(f'{val1:.2e}')
-			
+			move_window['-t_temp-'].Update(target)
+			at = var.shift_dic[target]['at']
+			move_window['-p_at-'].Update(f"{at:.2e}")
+			fig = plot_mod(target, at)
+		elif event == '-lower-' and values['-temp_l-'] !=[]:
+			if fig != '':
+				plt.close()
+			target = values['-temp_l-'][0]
+			move_window['-t_temp-'].Update(target)
+			at = var.shift_dic[target]['at']
+			move_window['-p_at-'].Update(f"{at:.2e}")
+			fig = plot_mod(target, at)
+		elif event == "-slider1-" or event == "-slider2-":
+			val1 = 10**(float(values['-slider1-'])+float(values['-slider2-']))
+			move_window['-mod_at-'].Update(f"{val1*var.shift_dic[target]['at']:.2e}")
+		elif event == "-move-":
+			if fig != '':
+				plt.close()
+			mod_at = float(values['-mod_at-'])
+			fig = plot_mod(target, mod_at)
+		elif event == '-set-':
+			move_window['-slider1-'].Update(0.)
+			move_window['-slider2-'].Update(0.)
+			move_window['-t_temp-'].Update('')
+			move_window['-p_at-'].Update('')
+			move_window['-param-'].Update()
+			var.shift_dic[target]['at'] = float(values['-mod_at-'])
+			var.param_list = [[temp, f"{float(var.shift_dic[temp]['at']):.2E}", float(var.shift_dic[temp]['bt'])] 
+		    					for temp in var.temp_list]
+			move_window['-param-'].Update(var.param_list)
 	move_window.close()
 	return
 
 def mod_param():
-	# ref_temp = var.wlf_param['ref_temp']
 	at_ref = var.shift_dic[var.ref_temp]["at"]
 	mod_shift_dic = {temp:{'at': var.shift_dic[temp]["at"]/at_ref, 
 			            'bt': var.shift_dic[var.ref_temp]["bt"]} for temp in var.shift_dic.keys()}
@@ -265,32 +305,29 @@ def mod_param():
 		                var.shift_dic[var.ref_temp]["bt"]] for temp in var.shift_dic.keys()]
 	return 
 
-def plot_mod(target):
-	extracteddata = var.yourdata_dic['extracteddata']
-	# temp_list = var.yourdata_dic['extracteddata']['temp_list']
-	# ref_temp = var.wlf_param['ref_temp']
-	print(target)
-	target_range = [x for x in var.temp_list if x <= target and x >= var.ref_temp]
+def plot_mod(target, mod_at):
+	if target > var.ref_temp:
+		target_range = [x for x in var.temp_list if x <= target and x >= var.ref_temp]
+	elif target < var.ref_temp:
+		target_range = [x for x in var.temp_list if x >= target and x <= var.ref_temp]
 	fig, ax = plt.subplots()
 	for temperature in target_range:
-		mfreq = [freq*var.shift_dic[temperature]['at'] 
-	                for freq in extracteddata['extracted_dic'][temperature]['Ang. Freq.']]
+		if temperature == target:
+			at = mod_at
+		else:
+			at = float(var.shift_dic[temperature]['at']) 
+		mfreq = [freq*at for freq in var.extracteddata['extracted_dic'][temperature]['Ang. Freq.']]
 		if temperature == var.ref_temp:
-			ax.plot(mfreq, extracteddata['extracted_dic'][temperature]['Tan_d'], 
+			ax.plot(mfreq, var.extracteddata['extracted_dic'][temperature]['Tan_d'], 
 	        label='Tr='+str(temperature), lw=3, color='red', ls=':')
 		else:
-			ax.plot(mfreq, extracteddata['extracted_dic'][temperature]['Tan_d'], 
+			ax.plot(mfreq, var.extracteddata['extracted_dic'][temperature]['Tan_d'], 
 	        label='T='+str(temperature))
-	ax.set_xlabel('Freq.')  # x軸ラベル
-	ax.set_ylabel(r'Tan $\delta$')  # y軸ラベル
-	ax.set_title(f'Modified based on Tr={var.ref_temp:}') # グラフタイトル
+	ax.set_xlabel('Freq.')
+	ax.set_ylabel(r'Tan $\delta$')
+	ax.set_title(f'Modified based on Tr={var.ref_temp:}')
 	ax.semilogx(base=10)
 	ax.semilogy(base=10)
 	ax.legend(borderaxespad=0, ncol=2)
 	plt.show(block=False)
-	return
-
-def show_mod_table():
-
-	return
-
+	return fig

@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 #####
 import PySimpleGUI as sg
-import openpyxl
-import csv
-import os
 import pickle
 
 import ShowOriginal as org
@@ -19,6 +16,9 @@ def load_binary():
 	if var.binaryfile:
 		with open(var.binaryfile, mode='rb') as f:
 			var.yourdata_dic = pickle.load(f)
+		var.originaldata = var.yourdata_dic['originaldata']
+		var.extracteddata = var.yourdata_dic['extracteddata']
+		var.parameters = var.yourdata_dic['parameters']
 	return
 
 def save_binary():
