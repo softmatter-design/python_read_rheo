@@ -26,8 +26,9 @@ def save_binary():
 				    save_as=True, 
 				    file_types=(("Binary Data File", ".pcl"),), 
                     size=(60,10))
-	with open(var.binaryfile, mode='wb') as f:
-		pickle.dump(var.yourdata_dic, f)
+	if var.binaryfile:
+		with open(var.binaryfile, mode='wb') as f:
+			pickle.dump(var.yourdata_dic, f)
 	return
 
 # Show Your Data 

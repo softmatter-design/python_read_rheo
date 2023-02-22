@@ -17,7 +17,10 @@ def select_original():
 		if os.path.splitext(targetfile)[1] == '.xlsx':
 			wb = openpyxl.load_workbook(targetfile)
 			sheetlist = wb.sheetnames
-			worksheet =selectsheet(sheetlist)
+			if len(sheetlist) >1:
+				worksheet =selectsheet(sheetlist)
+			else:
+				worksheet = sheetlist[0]
 			ws = wb[worksheet]
 			for row in ws.rows:
 				datalist.append([cell.value for cell in row])
@@ -47,7 +50,7 @@ def selectsheet(sheetlist):
 			worksheet = values['-sheet-'][0]
 			x, y = sub_selectwindow.current_location()
 			value = sg.popup(f'Selected work sheet: "{worksheet}"', 
-		    				location = (x+200, y-100), 
+		    				# location = (x+200, y-100), 
 							no_titlebar=True)
 			if value == 'OK':
 				break
