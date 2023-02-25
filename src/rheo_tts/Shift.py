@@ -46,11 +46,15 @@ def show_tune():
 										justification='center')],
 									[sg.Button('Plot Updated', 
 										key = '-plot_ud-', 
-										size=(30,1), 
+										size=(22,1), 
 										disabled=True),
 									sg.Button('aT and bT vs. Temp.', 
 										key = '-plot_at-', 
-										size=(30,1), 
+										size=(22,1), 
+										disabled=True),
+									sg.Button('Save Data', 
+										key = '-save_data-', 
+										size=(22,1), 
 										disabled=True)]
 									]
 								)
@@ -97,6 +101,7 @@ def show_tune():
 			fig = wlf_t0()
 			shift_window['-plot_ud-'].update(disabled=False)
 			shift_window['-plot_at-'].update(disabled=False)
+			shift_window['-save_data-'].update(disabled=False)
 			shift_window['-tune-'].update(disabled=False)
 			# shift_window['-tune_bt-'].update(disabled=False)
 			shift_window['-param-'].update(var.param_list)
@@ -108,6 +113,8 @@ def show_tune():
 			if fig != '':
 				plt.close()
 			fig = plot_at()	
+		elif event == '-save_data-':
+			save_data()
 		elif event == '-tune-' and values['-temp-'] != []: 
 			shift_window['-param-'].update(var.param_list)
 			if fig != '':
@@ -171,7 +178,24 @@ def plot_at():
 	plt.show(block=False)
 	return fig
 
+def save_data():
+	with open('shift_param.dat', 'w') as f:
+		for temperature in var.temp_list:
+			f.write(f"{temperature:.1f}\t{var.shift_dic[temperature]['at']:.2e}\t{var.shift_dic[temperature]['bt']:.1f}\n")
 
+	with open('modified.dat', 'w') as f:
+		for temperature in var.temp_list:
+			at = var.shift_dic[temperature]['at']
+			bt = var.shift_dic[temperature]['bt']
+			mfreq = [freq*at for freq in var.extracteddata['extracted_dic'][temperature]['Ang. Freq.']]
+			storage = [bt*data for data in var.extracteddata['extracted_dic'][temperature]['Str. Mod.']]
+			loss = [bt*data for data in var.extracteddata['extracted_dic'][temperature]['Loss Mod.']]
+			tand = var.extracteddata['extracted_dic'][temperature]['Tan_d']
+			f.write(f"# Temperature = {temperature:.1f}\n")
+			for i in range(len(var.extracteddata['extracted_dic'][temperature]['Ang. Freq.'])):
+				f.write(f"{mfreq[i]:.2e}\t{storage[i]:.2e}\t{loss[i]:.2e}\t{tand[i]:.2e}\n")
+
+	return
 
 
 
@@ -416,3 +440,5 @@ def plot_mod_bt(target, mod_bt):
 	ax.legend(borderaxespad=0, ncol=2)
 	plt.show(block=False)
 	return fig
+
+
