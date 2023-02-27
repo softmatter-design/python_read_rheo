@@ -1,4 +1,5 @@
 binaryfile = ''
+fileroot = ''
 
 originaldata = {
 				'filename': '',
@@ -11,15 +12,16 @@ extracteddata = {
                 'extracted_h_dic': {},
 				'extracted_dic': {}
 				}
-parameters = {
+shiftdata = {
 				'shift_dic': {},
-                'shift_list': []
+                'shift_list': [],
+                'modified_dic': {}
 				}
 
 yourdata_dic = {
 				'originaldata': originaldata, 
 				'extracteddata': extracteddata,
-				'parameters': parameters
+				'shiftdata': shiftdata
 				}
 
 datalabel_dic = {
@@ -34,7 +36,8 @@ skip = 1
 temp_list = []
 
 shift_dic= {}
-param_list = []
+shift_list = []
+
 wlf_param = {
 			'c1': 17.44,
 			'c2': 51.60,

@@ -119,7 +119,8 @@ def show_original():
 	     	key = '-exit-', 
 			size = (16,1))]
 	]
-	orgdata_window = sg.Window('Selected Data', layout_orgtable, finalize=True, resizable=True, size=(900,850))
+	orgdata_window = sg.Window('Selected Data', layout_orgtable, finalize=True, resizable=True)
+	# , size=(900,850))
 	
 	while True:
 		event, values = orgdata_window.read()

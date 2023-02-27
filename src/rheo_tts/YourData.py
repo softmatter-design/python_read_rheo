@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #####
 import PySimpleGUI as sg
+import os
 import pickle
 
 import ShowOriginal as org
@@ -14,11 +15,12 @@ def load_binary():
 				    file_types=(("Binary Data File", ".pcl"),), 
                     size=(60,10))
 	if var.binaryfile:
+		var.fileroot = os.path.splitext(var.binaryfile)[0]
 		with open(var.binaryfile, mode='rb') as f:
 			var.yourdata_dic = pickle.load(f)
 		var.originaldata = var.yourdata_dic['originaldata']
 		var.extracteddata = var.yourdata_dic['extracteddata']
-		var.parameters = var.yourdata_dic['parameters']
+		var.shiftdata = var.yourdata_dic['shiftdata']
 	return
 
 def save_binary():
@@ -27,6 +29,7 @@ def save_binary():
 				    file_types=(("Binary Data File", ".pcl"),), 
                     size=(60,10))
 	if var.binaryfile:
+		var.fileroot = os.path.splitext(var.binaryfile)[0]
 		with open(var.binaryfile, mode='wb') as f:
 			pickle.dump(var.yourdata_dic, f)
 	return
