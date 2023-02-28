@@ -13,9 +13,9 @@ import Extract as ext
 import Shift as sft
 import variables as var
 
-#####
+############################################################################
 # Main Window
-#####
+############################################################################
 def mainwindow():
 	# dpi conditioning
 	make_dpi_aware()
@@ -29,14 +29,10 @@ def mainwindow():
 			break
 
 		# Concerning Original Data File
-		elif event == '-read_org-':
-			main_window.hide()
-			org.select_original()
-			flag(main_window)
-			main_window.un_hide()
 		elif event == '-show_org-':
 			main_window.hide()
 			org.show_original()
+			flag(main_window)
 			main_window.un_hide()
 			
 		# Target Data file
@@ -71,13 +67,11 @@ def mainwindow():
 	main_window.close()
 	return
 
-
-
-def show_original(main_window):
-	main_window.hide()
-	org.show_original()
-	main_window.un_hide()
-	return
+def make_dpi_aware():
+  import ctypes
+  import platform
+  if int(platform.release()) >= 8:
+    ctypes.windll.shcore.SetProcessDpiAwareness(True)
 
 def make_mainwindow():
 	# Menu
@@ -111,86 +105,99 @@ def make_mainwindow():
 			]
 			]
 	# Widgets
-	frame_fileselect = sg.Frame('Original Data File',[
-							[sg.Text('Original File:', size=(16,1), justification='c'),
-							sg.Text('not selected yet.', 
-							key = '-orgdata-', 
-							relief=sg.RELIEF_RAISED, 
-							border_width=2, 
-							size = (30,1),
-							justification='c')
-							],
-							[sg.Button('Read Original', 
-		  					key='-read_org-', 
-							size=(14,1)),
-							sg.Button('Show Original', 
-		 					key='-show_org-', 
-							disabled=True, 
-							size=(14,1)),
-							]
-							]
-						)
-	frame_savedatafile = sg.Frame('Your Data File',[
-							[sg.Text('Your Data File:', size=(16,1), justification='c'),
-							sg.Text('not saved yet.', 
-							key = '-yourdata-', 
-							relief=sg.RELIEF_RAISED, 
-							border_width=2, 
-							size = (30,1),
-							justification='c')
-							],
-							[sg.Button('Load Data', 
-		  					key='-load_data-', 
-							size=(14,1)),
-							sg.Button('Save Data', 
-		 					key='-save_data-', 
-							size=(14,1)),
-							sg.Button('Show Data', 
-		 					key='-show_data-', 
-							size=(14,1))
-							]
-							]
+	frame_savedatafile = sg.Frame('Your Data File',
+			       				[
+									[
+									# sg.Text('Your Data File:', size=(16,1), justification='c'),
+									sg.Text('not saved yet.', 
+									key = '-yourdata-', 
+									relief=sg.RELIEF_RAISED, 
+									border_width=2, 
+									size = (30,1),
+									justification='c')
+									],
+									[sg.Button('Load Data', 
+									key='-load_data-', 
+									size=(30,1))],
+									[sg.Button('Save Data', 
+									key='-save_data-', 
+									size=(30,1))],
+									[sg.Button('Show Data', 
+									key='-show_data-', 
+									size=(30,1))
+									],
+								],
+							# border_width = 0
+							)
+	frame_fileselect = sg.Frame('Original Data File',
+								[
+									[
+									# sg.Text('Original File:', size=(16,1), justification='c'),
+									sg.Text('not selected yet.', 
+									key = '-orgdata-', 
+									relief=sg.RELIEF_RAISED, 
+									border_width=2, 
+									size = (30,1),
+									justification='c')
+									],
+									[sg.Button('Select & Show Original', 
+									key='-show_org-', 
+									# disabled=True, 
+									size=(30,1)),
+									]
+								],
+							# border_width = 0
 						)
 	frame_extracted = sg.Frame('Extract Data',[
 							[
-							sg.Text('Extracted Data:', size=(16,1), justification='c'),
+							# sg.Text('Extracted Data:', size=(16,1), justification='c'),
 							sg.Text('not extracted yet.', 
 							key = '-extdata-', 
-							relief=sg.RELIEF_RAISED, border_width=2, 
+							relief=sg.RELIEF_RAISED, 
+							border_width=2, 
 							size = (30,1),
 							justification='c')],
-							[sg.Button('Extract Data', 
+							[sg.Button('Extract from Original Data', 
 		 					key='-extract-', 
 							disabled=True, 
-							size=(14,1))]
+							size=(30,1))]
 							]
 						)
 	frame_shift = sg.Frame('Tune Shift Parameters',[
-							[sg.Text('Parameters:', size=(16,1), justification='c'),
+							[
+							# sg.Text('Parameters:', size=(16,1), justification='c'),
 							sg.Text('not made yet.', 
 							key = '-shiftdata-', 
 							relief=sg.RELIEF_RAISED, 
 							border_width=2, 
 							size = (30,1), 
 							justification='c')],
-							[sg.Button('Tune parameters', 
+							[sg.Button('Tune Parameters', 
 		  					key='-tune-', 
 							disabled=True, 
-							size=(14,1)
+							size=(30,1)
 							)]
 							]
 						)
+	layout_frame1 = [[frame_savedatafile],
+						[sg.Button('Exit', 
+						key = '-exit-',
+						size=(30,1), 
+						pad=((10,10), (20,10)))]
+		  			]
+	layout_frame2= [
+						[frame_fileselect],
+						[frame_extracted],
+						[frame_shift]
+					]
 	# Main Window
 	main_layout = [
 					# [sg.MenuBar(menu_def)],
-					[frame_fileselect,
-					frame_savedatafile],
-					[frame_extracted,
-					frame_shift],
-					[sg.Button('Exit', 
-					key = '-exit-',
-					size=(14,1))]
-				]
+					[sg.Frame('Your Data', layout_frame1, size=(280, 280)),
+						sg.Frame('Modify Your Data', layout_frame2, size=(280, 280), 
+						title_location=sg.TITLE_LOCATION_TOP)
+					]
+					]
 	#
 	window = sg.Window('Main Window', main_layout, finalize=True)
 
@@ -211,28 +218,28 @@ def make_mainwindow():
 	return window
 
 def flag(main_window):
-	if var.yourdata_dic['originaldata']['originaldata_list'] !=[]:
+	if var.originaldata_list != []:
 		main_window['-orgdata-'].update('Already Selected !', text_color='red')
 		main_window['-show_org-'].update(disabled=False)
 		main_window['-extract-'].update(disabled=False)
 	if var.binaryfile != '':
 		main_window['-yourdata-'].update('Already Selected !', text_color='red')
-	if var.yourdata_dic['extracteddata']['extracted_dic'] !=[]:
+	if var.temp_list != []:
 		main_window['-extdata-'].update('Already Extracted !', text_color='red')
 		main_window['-tune-'].update(disabled=False)
 	return
 
-
-def make_dpi_aware():
-  import ctypes
-  import platform
-  if int(platform.release()) >= 8:
-    ctypes.windll.shcore.SetProcessDpiAwareness(True)
-    
+############################################################################
+# End of Main Window
+############################################################################
 
 
 
-    
+
+
+
+
+
 if __name__ == '__main__':
 	mainwindow()
 

@@ -9,14 +9,68 @@ import variables as var
 def show_tune():
 	fig = ''
 	tune_initialize()
+	# make window
+	shift_window = make_shift_window()
+	# main loop
+	while True:
+		event, values = shift_window()
+		if event in [sg.WIN_CLOSED, '-exit-']:
+			break
+		elif event == '-wlf-':
+			if fig != '':
+				plt.close()
+			var.wlf_param['c1'] = float(values['-input_c1-'])
+			var.wlf_param['c2'] = float(values['-input_c2-'])
+			var.wlf_param['t0'] = float(values['-input_t0-'])
+			fig = wlf_t0()
+			shift_window['-param-'].update(var.shift_list)
+		elif event == '-plot_ud-':
+			if fig != '':
+				plt.close()
+			fig = plot_freq()	
+		elif event == '-plot_at-':
+			if fig != '':
+				plt.close()
+			fig = plot_at()	
+		elif event == '-save_data-':
+			save_data()
+		elif event == '-tune-' and values['-temp-'] != []: 
+			shift_window['-param-'].update(var.shift_list)
+			if fig != '':
+				plt.close()
+			shift_window.hide()
+			var.ref_temp = values['-temp-'][0]
+			move_man()
+			shift_window.un_hide()
+			shift_window['-param-'].update(var.shift_list)
+	plt.close('all')
+	shift_window.close()
+	return
 
+def tune_initialize():
+	var.extracteddata = var.yourdata_dic['extracteddata']
+	var.temp_list = var.extracteddata['temp_list']
+	var.shiftdata = var.yourdata_dic['shiftdata']
+	var.shift_dic = var.shiftdata['shift_dic']
+	var.shift_list = var.shiftdata['shift_list']
+	var.modified_dic = var.shiftdata['modified_dic']
+	if var.shift_dic == {} and var.shift_list == []:
+		for temperature in var.temp_list:
+			at = 1.0
+			bt = 1.0
+			shift_init = {'at': at, 'bt': bt}
+			var.shift_dic[temperature] = shift_init
+			var.shift_list.append([temperature, at, bt])
+	return
+
+def make_shift_window():
 	# ウィンドウのレイアウト
 	col_param = sg.Column([
-							[sg.Text('c1', size = (8,1)), 
+							[sg.Text('C1', size = (8,1)), 
 							sg.InputText(var.wlf_param["c1"], key = '-input_c1-', size = (6,1))], 
 							[sg.Text('C2:', size = (8,1)), 
 							sg.InputText(var.wlf_param["c2"], key = '-input_c2-', size = (6,1))],
-							[sg.Text('T0 (C):', size = (8,1)), 
+							[sg.Text('T0 (°C):', size = (8,1)), 
 							sg.InputText(var.wlf_param["t0"], key = '-input_t0-', size = (6,1))]
 						], justification='c')
 	col_text = sg.Column([
@@ -35,7 +89,7 @@ def show_tune():
 			     				[
 									[sg.Table(
 										var.shift_list, 
-										headings=['Temperature (C)', 'aT', 'bT'], 
+										headings=['Temperature (°C)', 'aT', 'bT'], 
 										key='-param-', 
 										def_col_width=18, 
 										auto_size_columns=False, 
@@ -74,61 +128,11 @@ def show_tune():
 				[frame_mantune],
 				[sg.Button('Exit', key = '-exit-', size=(8,1))]
 				]
-	shift_window = sg.Window('Tune the shift parameters', 
+	window = sg.Window('Tune the shift parameters', 
 			                shift_layout, 
 			                finalize=True)
-
-	while True:
-		event, values = shift_window()
-		if event in [sg.WIN_CLOSED, '-exit-']:
-			break
-		elif event == '-wlf-':
-			if fig != '':
-				plt.close()
-			var.wlf_param['c1'] = float(values['-input_c1-'])
-			var.wlf_param['c2'] = float(values['-input_c2-'])
-			var.wlf_param['t0'] = float(values['-input_t0-'])
-			fig = wlf_t0()
-			# shift_window['-plot_ud-'].update(disabled=False)
-			# shift_window['-plot_at-'].update(disabled=False)
-			# shift_window['-save_data-'].update(disabled=False)
-			# shift_window['-tune-'].update(disabled=False)
-			# shift_window['-tune_bt-'].update(disabled=False)
-			shift_window['-param-'].update(var.shift_list)
-		elif event == '-plot_ud-':
-			if fig != '':
-				plt.close()
-			fig = plot_freq()	
-		elif event == '-plot_at-':
-			if fig != '':
-				plt.close()
-			fig = plot_at()	
-		elif event == '-save_data-':
-			save_data()
-		elif event == '-tune-' and values['-temp-'] != []: 
-			shift_window['-param-'].update(var.shift_list)
-			if fig != '':
-				plt.close()
-			shift_window.hide()
-			var.ref_temp = values['-temp-'][0]
-			move_man()
-			shift_window.un_hide()
-			shift_window['-param-'].update(var.shift_list)
-	plt.close('all')
-	shift_window.close()
-	return
-
-def tune_initialize():
-	var.extracteddata = var.yourdata_dic['extracteddata']
-	var.temp_list = var.extracteddata['temp_list']
-	if var.shift_dic == {} and var.shift_list == []:
-		for temperature in var.temp_list:
-			at = 1.0
-			bt = 1.0
-			shift_init = {'at': at, 'bt': bt}
-			var.shift_dic[temperature] = shift_init
-			var.shift_list.append([temperature, at, bt])
-	return
+	
+	return window
 
 def wlf_t0():
 	tmp = []
@@ -172,17 +176,10 @@ def plot_at():
 	return fig
 
 def save_data():
-	shiftdata = {
-				'shift_dic': {},
-                'shift_list': [],
-                'modified_dic': {}
-				}
-	
-
 	with open(var.fileroot + '_shift_param.dat', 'w') as f:
 		f.write(f"# Temp.\taT\tbT\n\n\n")
 		for temperature in var.temp_list:
-			f.write(f"{temperature:.1f}\t{var.shift_dic[temperature]['at']:.2e}\t{var.shift_dic[temperature]['bt']:.1f}\n")
+			f.write(f"{temperature:.1f}\t{var.shift_dic[temperature]['at']:.2e}\t{var.shift_dic[temperature]['bt']:.2f}\n")
 
 	with open(var.fileroot + '_modified.dat', 'w') as f:
 		for temperature in var.temp_list:
@@ -196,6 +193,11 @@ def save_data():
 			for i in range(len(var.extracteddata['extracted_dic'][temperature]['Ang. Freq.'])):
 				f.write(f"{mfreq[i]:.2e}\t{storage[i]:.2e}\t{loss[i]:.2e}\t{tand[i]:.2e}\n")
 			f.write("\n")
+
+	var.shiftdata = var.yourdata_dic['shiftdata']
+	var.shiftdata['shift_dic'] = var.shift_dic
+	var.shiftdata['shift_list'] = var.shift_list
+	var.shiftdata['modified_dic'] = var.modified_dic
 
 	return
 
@@ -215,34 +217,37 @@ def move_man():
 	mod_param()
 	lower_temp = [x for x in var.temp_list if x < var.ref_temp]
 	upper_temp = [x for x in var.temp_list if x > var.ref_temp]
+	target_row = var.temp_list.index(var.ref_temp)
 
 	frame_reftemp = sg.Frame('Modified Parameters',
 							[
 								[sg.Table(
 								var.shift_list, 
-								headings=['Temperature (C)', 'aT', 'bT'], 
+								headings=['Temperature (°C)', 'aT', 'bT'], 
 								key='-param-', 
-								def_col_width=18, auto_size_columns=False, 
+								def_col_width=18, 
+								auto_size_columns=False, 
 								vertical_scroll_only=True, 
+								row_colors = [(target_row, 'red', 'white')],
 								num_rows = len(var.shift_list), 
 								justification='center'
 								)],
 							]	
 			  				)
 	col_upper = sg.Column([
-					[sg.Text('Upper')],
-					[sg.Listbox(upper_temp, key='-temp_u-', size=(6,3))],
-					[sg.Button('Move Upper Data', key='-upper-', size=(20,1))]
-				], justification='c')
+					# [sg.Text('Upper')],
+					[sg.Listbox(upper_temp, key='-temp_u-', size=(6,3)), 
+      				sg.Button('Move Upper Data', key='-upper-', size=(16,1))]
+				], justification='c', vertical_alignment='c')
 	col_lower = sg.Column([
-					[sg.Text('Lower')],
-      				[sg.Listbox(lower_temp, key='-temp_l-', size=(6,3))],
-					[sg.Button('Move Lower Data', key='-lower-', size=(20,1))]
-				], justification='c')
+					# [sg.Text('Lower')],
+      				[sg.Listbox(lower_temp, key='-temp_l-', size=(6,3)),
+					sg.Button('Move Lower Data', key='-lower-', size=(16,1))]
+				], justification='c', vertical_alignment='c')
 	col_reference = sg.Column([
-						[sg.Text('Reference Temperature')],
-		                [sg.Text(str(var.ref_temp))]
-					], justification='c')
+						[sg.Text('Ref. Temp.')],
+		                [sg.Text(str(var.ref_temp) + '°C')]
+					], justification='c', vertical_alignment='c')
 	frame_target = sg.Frame('Target Temperature',
 								[
 									[col_upper, col_reference, col_lower]
@@ -250,8 +255,6 @@ def move_man():
 							)
 	frame_move_at = sg.Frame('Tune aT manually !!',
 			     			[
-							[sg.Text('Move Target Temperature: '),
-							sg.Text('', key='-t_temp-')],
 							[sg.Text('Previous aT: '),
 							sg.Text('', key='-p_at-')],
 							[sg.Text("Fine", size=(5,1)),
@@ -281,11 +284,18 @@ def move_man():
 							)
 	frame_move_bt = sg.Frame('Tune bT manually !!',
 			     			[
-							[sg.Text('Move Target Temperature: '),
-							sg.Text('', key='-t_temp-')],
 							[sg.Text('Previous bT: '),
 							sg.Text(1.0, key='-p_bt-')],
 							[sg.Text("Fine", size=(5,1)),
+							sg.Slider(range=(-0.1,0.1),
+								default_value = 0.0,
+								resolution=0.001,
+								orientation='h',
+								disable_number_display=True,
+								size=(50, None),
+								enable_events=True,
+								key='-sliderb1-')],
+							[sg.Text("Rough", size=(5,1)),
 							sg.Slider(range=(-1.,1.),
 								default_value = 0.0,
 								resolution=0.01,
@@ -293,7 +303,7 @@ def move_man():
 								disable_number_display=True,
 								size=(50, None),
 								enable_events=True,
-								key='-sliderb1-')],
+								key='-sliderb2-')],
 							[sg.Text('Modified bT: '),
 							sg.InputText('', key='-mod_bt-', size=(8,1))],
 							[sg.Button('Move bT', key='-move_bt-', size=(20,1)),
@@ -318,7 +328,7 @@ def move_man():
 			if fig != '':
 				plt.close()
 			target = values['-temp_u-'][0]
-			move_window['-t_temp-'].Update(target)
+			# move_window['-t_temp-'].Update(target)
 			at = var.shift_dic[target]['at']
 			bt = var.shift_dic[target]['bt']
 			move_window['-p_at-'].Update(f"{at:.2e}")
@@ -330,7 +340,7 @@ def move_man():
 			if fig != '':
 				plt.close()
 			target = values['-temp_l-'][0]
-			move_window['-t_temp-'].Update(target)
+			# move_window['-t_temp-'].Update(target)
 			at = var.shift_dic[target]['at']
 			bt = var.shift_dic[target]['bt']
 			move_window['-p_at-'].Update(f"{at:.2e}")
@@ -349,16 +359,15 @@ def move_man():
 		elif event == '-set_at-':
 			move_window['-slidera1-'].Update(0.)
 			move_window['-slidera2-'].Update(0.)
-			move_window['-t_temp-'].Update('')
-			move_window['-p_at-'].Update('')
+			move_window['-p_at-'].Update(float(values['-mod_at-']))
 			move_window['-param-'].Update()
 			var.shift_dic[target]['at'] = float(values['-mod_at-'])
 			var.shift_list = [[temp, f"{float(var.shift_dic[temp]['at']):.2E}", float(var.shift_dic[temp]['bt'])] 
 		    					for temp in var.temp_list]
 			move_window['-param-'].Update(var.shift_list)
-		elif event == "-sliderb1-":
-			amp = 10**(float(values['-sliderb1-']))
-			move_window['-mod_bt-'].Update(f"{amp*var.shift_dic[target]['bt']:.2f}")
+		elif event == "-sliderb1-" or event == "-sliderb2-":
+			amp = 10**(float(values['-sliderb1-'])+float(values['-sliderb2-']))
+			move_window['-mod_bt-'].Update(f"{amp*var.shift_dic[target]['bt']:.2e}")
 		elif event == "-move_bt-":
 			if fig != '':
 				plt.close()
@@ -366,10 +375,8 @@ def move_man():
 			fig = plot_mod_bt(target, mod_bt)
 		elif event == '-set_bt-':
 			move_window['-sliderb1-'].Update(0.)
-			# move_window['-slidera2-'].Update(0.)
-			move_window['-t_temp-'].Update('')
-			move_window['-p_bt-'].Update('')
-			# move_window['-param-'].Update()
+			move_window['-sliderb2-'].Update(0.)
+			move_window['-p_bt-'].Update(float(values['-mod_bt-']))
 			var.shift_dic[target]['bt'] = float(values['-mod_bt-'])
 			var.shift_list = [[temp, f"{float(var.shift_dic[temp]['at']):.2E}", float(var.shift_dic[temp]['bt'])] 
 		    					for temp in var.temp_list]

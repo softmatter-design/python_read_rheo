@@ -1,29 +1,23 @@
-binaryfile = ''
-fileroot = ''
-
+# Concerning Original Data
+targetfile = ''
+worksheet = ''
+originaldata_list = []
+comment = 'You can erase and input multi lines Comment here!\nYou can hit return key for new line'
 originaldata = {
-				'filename': '',
-                'sheetname': '',
-                'originaldata_list': [],
-                'comment': 'You can erase and input multi lines Comment here!\nYou can hit return key for new line'
+				'targetfile': targetfile,
+                'worksheet': worksheet,
+                'originaldata_list': originaldata_list,
+                'comment': comment
 				}
+# Concerning Extracted Data
+temp_list = []
+extracted_dic = {}
 extracteddata = {
 				'temp_list': [],
                 'extracted_h_dic': {},
 				'extracted_dic': {}
 				}
-shiftdata = {
-				'shift_dic': {},
-                'shift_list': [],
-                'modified_dic': {}
-				}
-
-yourdata_dic = {
-				'originaldata': originaldata, 
-				'extracteddata': extracteddata,
-				'shiftdata': shiftdata
-				}
-
+# Concerning Tuning Shift Parameters
 datalabel_dic = {
 			'Temp.':'温度', 
 			'Ang. Freq.':'角周波数', 
@@ -32,16 +26,26 @@ datalabel_dic = {
 			'Tan_d':'損失正接'
 			}
 skip = 1
-
-temp_list = []
-
-shift_dic= {}
-shift_list = []
-
 wlf_param = {
 			'c1': 17.44,
 			'c2': 51.60,
 			't0': 0.0,
 			}
-bt = 1.0
 ref_temp = 0.
+shift_dic= {}
+shift_list = []
+modified_dic = {}
+shiftdata = {
+				'shift_dic': {},
+                'shift_list': [],
+                'modified_dic': {}
+				}
+# Binding all data
+binaryfile = ''
+fileroot = ''
+yourdata_dic = {
+				'originaldata': originaldata, 
+				'extracteddata': extracteddata,
+				'shiftdata': shiftdata
+				}
+
