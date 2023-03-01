@@ -11,6 +11,7 @@ originaldata = {
 				}
 # Concerning Extracted Data
 temp_list = []
+extracted_h_dic = {}
 extracted_dic = {}
 extracteddata = {
 				'temp_list': [],

@@ -9,10 +9,9 @@ import variables as var
 
 # Show Original Data 
 def show_original():
-	if var.targetfile == '':
+	if var.originaldata['targetfile'] == '':
 		select_original()
 	else:
-		# Initialize
 		original_initialize()
 	# Make Window
 	orgdata_window = make_original_window()
@@ -20,7 +19,6 @@ def show_original():
 	while True:
 		event, values = orgdata_window.read()
 		if event in [sg.WIN_CLOSED, '-exit-']:
-			var.originaldata['comment'] = values['-comment-']
 			break
 		elif event == 'Copy':
 			copytext = ''
@@ -38,6 +36,8 @@ def show_original():
 			orgdata_window['-ws-'].Update(var.worksheet)
 			orgdata_window['-data_table-'].Update(var.originaldata_list)
 			orgdata_window['-comment-'].Update('')
+	
+	var.originaldata['comment'] = values['-comment-']
 	var.yourdata_dic['originaldata'] = var.originaldata
 	orgdata_window.close()
 	return
@@ -93,10 +93,10 @@ def selectsheet(sheetlist):
 	return
 
 def original_initialize():
-	var.targetfile= var.yourdata_dic['originaldata']['targetfile']
-	var.worksheet = var.yourdata_dic['originaldata']['worksheet']
-	var.originaldata_list = var.yourdata_dic['originaldata']['originaldata_list']
-	var.comment =  var.yourdata_dic['originaldata']['comment']
+	var.targetfile= var.originaldata['targetfile']
+	var.worksheet = var.originaldata['worksheet']
+	var.originaldata_list = var.originaldata['originaldata_list']
+	var.comment = var.originaldata['comment']
 	return
 
 def make_original_window():
@@ -119,6 +119,9 @@ def make_original_window():
 				sg.Text(var.worksheet, 
 				size = (30,1),
 				key='-ws-')],
+				[sg.Button('Change File', 
+				key = '-change-', 
+				size = (20,1))],
 				[sg.Table(var.originaldata_list, 
 				headings=ncolm_list, 
 				display_row_numbers=True, 
@@ -144,13 +147,9 @@ def make_original_window():
 	layout_orgtable = [
 				[frame_table],
 				[frame_savecommennt],
-				[
-				sg.Button('Change File', 
-				key = '-change-', 
-				size = (16,1)),
-				sg.Button('Exit', 
+				[sg.Button('Back to MAIN', 
 				key = '-exit-', 
-				size = (16,1))]
+				size = (20,1))]
 		]
 	window = sg.Window('Selected Data', layout_orgtable, finalize=True, resizable=True)
 	# , size=(900,850))

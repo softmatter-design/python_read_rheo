@@ -9,7 +9,16 @@ import ShowOriginal as org
 import Extract as ext
 import variables as var
 
-# Your Data
+
+def select_yours(event):
+	if event == '-load_data-':
+		load_binary()
+	elif event == '-save_data-':
+		save_binary()
+	elif event == '-show_data-':
+		show_yourdata()
+	return
+
 def load_binary():
 	var.binaryfile = sg.popup_get_file('Load', 
 				    file_types=(("Binary Data File", ".pcl"),), 
@@ -35,44 +44,62 @@ def save_binary():
 	return
 
 # Show Your Data 
-def show_yours():
+def show_yourdata():
+	yours_window = make_yourwindow()
+	if var.originaldata['targetfile'] != '':
+		yours_window['-show_org-'].Update(disabled=False)
+	if var.extracteddata['temp_list'] != []:
+		yours_window['-show_ext-'].Update(disabled=False)
+	if var.shiftdata['shift_list'] != []:
+		yours_window['-show_param-'].Update(disabled=False)
+	
+	while True:
+		event, values = yours_window.read()
+		if event in [sg.WIN_CLOSED, '-exit-']:
+			break
+		elif event == '-show_org-':
+			org.show_original()
+		elif event == '-show_ext-':
+			ext.show_extracted()
+		elif event == '-show_param-':
+			pass
+	yours_window.close()
+	return
 
-	rclick_table = ["",
-				["Copy"]
-				]
-	rclick_comment = ["",
-				["Paste"]
-				]
+def make_yourwindow():
 	frame_original = sg.Frame(
 		'Original Data', [
 			[sg.Text('Original Data:', 
-			size = (10,1)), 
+			size = (16,1)), 
     		sg.Text('', 
 			size = (60,1))],
 			[sg.Button('Show_Original', 
 	     	key = '-show_org-', 
+		    disabled=True,
 			size = (16,1))]
 				]
 			)
 	frame_extracted = sg.Frame(
 		'Extracted Data', [
 			[sg.Text('Extracted Data:', 
-			size = (10,1)), 
+			size = (16,1)), 
     		sg.Text('', 
 			size = (60,1))],
 			[sg.Button('Show_Extracted', 
 	     	key = '-show_ext-', 
+		    disabled=True, 
 			size = (16,1))]
 				]
 			)
 	frame_parameters = sg.Frame(
 		'Shift Parameters', [
 			[sg.Text('Shift Parameters:', 
-			size = (10,1)), 
+			size = (16,1)), 
     		sg.Text('', 
 			size = (60,1))],
 			[sg.Button('Show_Parameters', 
 	     	key = '-show_param-', 
+		    disabled=True, 
 			size = (16,1))]
 				]
 			)
@@ -81,32 +108,10 @@ def show_yours():
 			[frame_extracted],
 			[frame_parameters],
 			[
-			sg.Button('Exit', 
+			sg.Button('Back to MAIN', 
 	     	key = '-exit-', 
 			size = (16,1))]
 	]
-	yours_window = sg.Window('Your Data', layout_yours, finalize=True, resizable=True)
-	
-	while True:
-		event, values = yours_window.read()
-		if event in [sg.WIN_CLOSED, '-exit-']:
-			# sg.popup_menu(['',['ccc', 'ddd']])
-			break
-		elif event == '-show_org-':
-			org.show_original()
-		elif event == '-show_ext-':
-			ext.show_extracted()
-		# elif event == 'Copy':
-		# 	copytext = ''
-		# 	for num in values['-data_table-']:
-		# 		for cell in datalist[num]:
-		# 			if cell not in ['', None]:
-		# 				copytext += str(cell) + '\t'
-		# 		copytext += '\n'
-		# 	sg.clipboard_set(copytext)
-		# elif event == 'Paste':
-		# 	orgdata_window['-comment-'].Widget.insert("insert", sg.clipboard_get())
-		# elif event == '-comment-':
-		# 	var.yourdata_dic['originaldata']['comment'] = values['-comment-']
-	yours_window.close()
-	return
+	window = sg.Window('Your Data', layout_yours, finalize=True, resizable=True)
+	return window
+

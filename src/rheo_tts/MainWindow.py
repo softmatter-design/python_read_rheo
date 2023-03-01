@@ -27,6 +27,13 @@ def mainwindow():
 		### Main Window Procedure
 		if event in [sg.WIN_CLOSED, '-exit-']:
 			break
+		
+		# Target Data file
+		elif event in ['-load_data-', '-save_data-', '-show_data-']:
+			main_window.hide()
+			you.select_yours(event)
+			flag(main_window)
+			main_window.un_hide()
 
 		# Concerning Original Data File
 		elif event == '-show_org-':
@@ -35,27 +42,11 @@ def mainwindow():
 			flag(main_window)
 			main_window.un_hide()
 			
-		# Target Data file
-		elif event == '-load_data-':
-			main_window.hide()
-			you.load_binary()
-			flag(main_window)
-			main_window.un_hide()
-		elif event == '-save_data-':
-			main_window.hide()
-			you.save_binary()
-			flag(main_window)
-			main_window.un_hide()
-		elif event == '-show_data-':
-			main_window.hide()
-			you.show_yours()
-			main_window.un_hide()
-
 		# Extract Data from Original
 		elif event == '-extract-':
 			main_window.hide()
-			# var.temp_list = sorted(list(var.moddata.keys()))
 			ext.extract()
+			flag(main_window)
 			main_window.un_hide()
 
 		# Modify Shift Parameters
@@ -218,13 +209,13 @@ def make_mainwindow():
 	return window
 
 def flag(main_window):
-	if var.originaldata_list != []:
+	if var.originaldata['originaldata_list'] != []:
 		main_window['-orgdata-'].update('Already Selected !', text_color='red')
 		main_window['-show_org-'].update(disabled=False)
 		main_window['-extract-'].update(disabled=False)
 	if var.binaryfile != '':
 		main_window['-yourdata-'].update('Already Selected !', text_color='red')
-	if var.temp_list != []:
+	if var.extracteddata['temp_list'] != []:
 		main_window['-extdata-'].update('Already Extracted !', text_color='red')
 		main_window['-tune-'].update(disabled=False)
 	return
