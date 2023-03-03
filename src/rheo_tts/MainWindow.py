@@ -173,8 +173,8 @@ def make_mainwindow():
 	layout_frame1 = [[frame_savedatafile],
 						[sg.Button('Exit', 
 						key = '-exit-',
-						size=(30,1), 
-						pad=((10,10), (20,10)))]
+						size=(30,2), 
+						pad=((10,10), (32,32)))]
 		  			]
 	layout_frame2= [
 						[frame_fileselect],
@@ -184,8 +184,10 @@ def make_mainwindow():
 	# Main Window
 	main_layout = [
 					# [sg.MenuBar(menu_def)],
-					[sg.Frame('Your Data', layout_frame1, size=(280, 280)),
-						sg.Frame('Modify Your Data', layout_frame2, size=(280, 280), 
+					[sg.Frame('Your Data', layout_frame1),
+    #   , size=(280, 280)),
+						sg.Frame('Modify Your Data', layout_frame2,
+	    #    , size=(280, 280), 
 						title_location=sg.TITLE_LOCATION_TOP)
 					]
 					]

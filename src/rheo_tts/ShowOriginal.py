@@ -13,6 +13,9 @@ def show_original():
 		select_original()
 	else:
 		original_initialize()
+	#
+	if var.targetfile in ['', None]:
+		return
 	# Make Window
 	orgdata_window = make_original_window()
 	# Main Loop

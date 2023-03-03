@@ -68,6 +68,7 @@ def show_extracted():
 		elif event == '-draw-':
 			if fig != '':
 				plt.close()
+			
 			target = ''
 			if values['-both-'] == True:
 				target = 'both'
@@ -76,6 +77,8 @@ def show_extracted():
 			if values['-tan_d_s-'] == True:
 				target = 'tand'
 			fig = draw_siglegraph(target, temperature)
+
+
 		elif event == '-draw_all-':
 			if fig != '':
 				plt.close()
@@ -170,6 +173,12 @@ def make_extwindow():
 	window = sg.Window('Check and Draw Graph for Extracted data', extracted_layout, finalize=True)
 	return window
 
+
+
+
+
+
+
 def draw_siglegraph(target, temperature):
 	if target == 'tand':
 		fig, ax = plt.subplots()
@@ -249,3 +258,49 @@ def draw_allgraphs(target):
 
 
 
+def draw_graph(target, temp_list):
+	fig, ax1 = plt.subplots()
+	for temperature in temp_list:
+		if target == 'tand':
+			ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
+					var.extracted_dic[temperature]['Tan_d'], 
+					label=r'Tan $\delta$', 
+					c="r")
+			ax1.set_ylabel(r'Tan $\delta$')  # y軸ラベル
+			ax1.legend(borderaxespad=0)
+		elif target == 'both':
+			ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
+					var.extracted_dic[temperature]['Str. Mod.'], 
+					label="G'", 
+					c="r")
+			ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
+					var.extracted_dic[temperature]['Loss Mod.'], 
+					label= 'G"', 
+					c="g")
+			ax1.set_ylabel('Storage and Loss Moduli')  # y軸ラベル
+			ax1.legend(borderaxespad=0)
+		elif target == 'all':
+			ax2 = ax1.twinx()
+			ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
+					var.extracted_dic[temperature]['Str. Mod.'], 
+					label="G'", c="r")
+			ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
+					var.extracted_dic[temperature]['Loss Mod.'], 
+					label= 'G"', c="g")
+			ax2.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
+					var.extracted_dic[temperature]['Tan_d'], 
+					label=r'Tan $\delta$', c="b")
+			ax1.set_ylabel('Storage and Loss Moduli')  # y軸ラベル
+			ax2.set_ylabel(r'Tan $\delta$')  # y軸ラベル
+			ax2.semilogy(base=10)
+			h1, l1 = ax1.get_legend_handles_labels()
+			h2, l2 = ax2.get_legend_handles_labels()
+			ax1.legend(h1 + h2, l1 + l2, borderaxespad=0)
+
+		ax1.set_xlabel('Freq.')  # x軸ラベル
+		ax1.set_title('Measured Raw Data for T=' + str(temperature)) # グラフタイトル
+		ax1.semilogx(base=10)
+		ax1.semilogy(base=10)
+
+	plt.show(block=False)
+	return fig

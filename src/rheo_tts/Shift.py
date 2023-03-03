@@ -335,7 +335,6 @@ def move_man():
 			if fig != '':
 				plt.close()
 			target = values['-temp_u-'][0]
-			# move_window['-t_temp-'].Update(target)
 			at = var.shift_dic[target]['at']
 			bt = var.shift_dic[target]['bt']
 			move_window['-p_at-'].Update(f"{at:.2e}")
@@ -347,7 +346,6 @@ def move_man():
 			if fig != '':
 				plt.close()
 			target = values['-temp_l-'][0]
-			# move_window['-t_temp-'].Update(target)
 			at = var.shift_dic[target]['at']
 			bt = var.shift_dic[target]['bt']
 			move_window['-p_at-'].Update(f"{at:.2e}")
@@ -369,9 +367,11 @@ def move_man():
 			move_window['-p_at-'].Update(f"{float(values['-mod_at-']):.2e}")
 			move_window['-param-'].Update()
 			var.shift_dic[target]['at'] = float(values['-mod_at-'])
-			var.shift_list = [[temp, f"{float(var.shift_dic[temp]['at']):.2E}", float(var.shift_dic[temp]['bt'])] 
+			var.shift_list = [[temp, f"{float(var.shift_dic[temp]['at']):.2E}", 
+		      								float(var.shift_dic[temp]['bt'])] 
 		    					for temp in var.temp_list]
-			move_window['-param-'].Update(var.shift_list)
+			move_window['-param-'].Update(var.shift_list,
+				 					row_colors = [(target_row, 'red', 'white')])
 		elif event == "-sliderb1-" or event == "-sliderb2-":
 			amp = 10**(float(values['-sliderb1-'])+float(values['-sliderb2-']))
 			move_window['-mod_bt-'].Update(f"{amp*float(var.shift_dic[target]['bt']):.2e}")
@@ -385,9 +385,11 @@ def move_man():
 			move_window['-sliderb2-'].Update(0.)
 			move_window['-p_bt-'].Update(float(values['-mod_bt-']))
 			var.shift_dic[target]['bt'] = float(values['-mod_bt-'])
-			var.shift_list = [[temp, f"{float(var.shift_dic[temp]['at']):.2E}", float(var.shift_dic[temp]['bt'])] 
+			var.shift_list = [[temp, f"{float(var.shift_dic[temp]['at']):.2E}", 
+		      								float(var.shift_dic[temp]['bt'])] 
 		    					for temp in var.temp_list]
-			move_window['-param-'].Update(var.shift_list)
+			move_window['-param-'].Update(var.shift_list,
+				 							row_colors = [(target_row, 'red', 'white')])
 	move_window.close()
 	return
 
