@@ -3,7 +3,6 @@
 #####
 import PySimpleGUI as sg
 import matplotlib.pyplot as plt
-import pickle
 
 import variables as var
 
@@ -109,22 +108,18 @@ def make_extwindow():
 						justification='c'
 						)
 	frame_table = sg.Frame('Extracted data table', 
-								[
-									[
-									col_temp,
-									sg.Table(
-												[
-													[None for i in list(var.datalabel_dic.keys())]
-												], 
-												headings=list(var.datalabel_dic.keys()), 
-												key='-table-', 
-												def_col_width=12, 
-												auto_size_columns=False, 
-												vertical_scroll_only=False, 
-												num_rows = len(var.extracted_h_dic[var.temp_list[0]])
+								[[col_temp,
+									sg.Table([
+											[None for i in list(var.datalabel_dic.keys())]
+											], 
+											headings=list(var.datalabel_dic.keys()), 
+											key='-table-', 
+											def_col_width=12, 
+											auto_size_columns=False, 
+											vertical_scroll_only=False, 
+											num_rows = len(var.extracted_h_dic[var.temp_list[0]])
 											)
-									]
-								]
+								]]
 							)
 	col_target = [
 				[sg.Checkbox("Storage Modulus", key='-storage-')],
@@ -158,91 +153,6 @@ def make_extwindow():
 				]
 	window = sg.Window('Check and Draw Graph for Extracted data', extracted_layout, finalize=True)
 	return window
-
-
-
-
-
-
-
-def draw_siglegraph(target, temperature):
-	if target == 'tand':
-		fig, ax = plt.subplots()
-		ax.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
-	  			var.extracted_dic[temperature]['Tan_d'], 
-				label=r'Tan $\delta$', 
-				c="r")
-		ax.set_ylabel(r'Tan $\delta$')  # y軸ラベル
-		ax.set_xlabel('Angular Frequency')  # x軸ラベル
-		ax.set_title('Measured Raw Data for T=' + str(temperature)) # グラフタイトル
-		ax.semilogx(base=10)
-		ax.semilogy(base=10)
-		ax.legend(borderaxespad=0)
-	elif target == 'both':
-		fig, ax = plt.subplots()
-		ax.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
-	  			var.extracted_dic[temperature]['Str. Mod.'], 
-				label="G'", 
-				c="r")
-		ax.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
-	  			var.extracted_dic[temperature]['Loss Mod.'], 
-				label= 'G"', 
-				c="g")
-		ax.set_ylabel('Storage and Loss Moduli')  # y軸ラベル
-		ax.set_xlabel('Angular Frequency')  # x軸ラベル
-		ax.set_title('Measured Raw Data for T=' + str(temperature)) # グラフタイトル
-		ax.semilogx(base=10)
-		ax.semilogy(base=10)
-		ax.legend(borderaxespad=0)
-	elif target == 'all':
-		fig, ax1 = plt.subplots()
-		ax2 = ax1.twinx()
-		ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
-	   			var.extracted_dic[temperature]['Str. Mod.'], 
-				label="G'", c="r")
-		ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
-	   			var.extracted_dic[temperature]['Loss Mod.'], 
-				label= 'G"', c="g")
-		ax2.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
-	   			var.extracted_dic[temperature]['Tan_d'], 
-				label=r'Tan $\delta$', c="b")
-		ax1.set_ylabel('Storage and Loss Moduli')  # y軸ラベル
-		ax2.set_ylabel(r'Tan $\delta$')  # y軸ラベル
-		ax1.set_xlabel('Angular Frequency')  # x軸ラベル
-		ax1.set_title('Measured Raw Data for T=' + str(temperature)) # グラフタイトル
-		ax1.semilogx(base=10)
-		ax1.semilogy(base=10)
-		ax2.semilogy(base=10)
-		h1, l1 = ax1.get_legend_handles_labels()
-		h2, l2 = ax2.get_legend_handles_labels()
-		ax1.legend(h1 + h2, l1 + l2, borderaxespad=0)
-
-	plt.show(block=False)
-	return fig
-
-def draw_allgraphs(target):
-	fig, ax = plt.subplots()
-	for temperature in var.temp_list:
-		ax.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
-				var.extracted_dic[temperature][target], 
-				label='T='+str(temperature))
-	ax.set_xlabel('Angular Frequency')  # x軸ラベル
-	if target == 'Tan_d':
-		ax.set_ylabel(r'Tan $\delta$')  # y軸ラベル
-	elif target == 'Str. Mod.':
-		ax.set_ylabel('Storage Modulus')  # y軸ラベル
-	elif target == 'Loss Mod.':
-		ax.set_ylabel('Loss Modulus')  # y軸ラベル
-	ax.set_title('Measured Raw Data for all Temperature') # グラフタイトル
-	ax.semilogx(base=10)
-	ax.semilogy(base=10)
-	ax.legend(borderaxespad=0, ncol=2)
-
-	plt.show(block=False)
-	return fig
-
-
-
 
 def draw_graph(target, color, temp_list):
 	fig, ax1 = plt.subplots()
@@ -330,8 +240,6 @@ def draw_graph(target, color, temp_list):
 						c="b")
 		ax1.legend(legendlist)
 		ax1.set_ylabel(labeltext)
-	
-	# ax1.set_title('Measured Raw Data for T=' + str(temperature)) # グラフタイトル
 
 	ax1.set_xlabel('Angular Frequency')  # x軸ラベル
 	ax1.semilogx(base=10)
