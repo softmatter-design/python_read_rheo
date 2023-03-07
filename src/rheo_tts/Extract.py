@@ -58,38 +58,24 @@ def show_extracted():
 		event, values = ext_window.read()
 		if event in [sg.WIN_CLOSED, '-exit-']:
 			break
+		
 		elif event == '-temp-':
 			temperature = values['-temp-'][0]
 			ext_window['-table-'].update(var.extracted_h_dic[temperature])
 			ext_window['-draw-'].update(disabled=False)
-		######
-		# https://note.com/nssystems/n/n737db19ee190
-		#######
+
 		elif event == '-draw-':
 			if fig != '':
 				plt.close()
 			
-			target = ''
-			if values['-both-'] == True:
-				target = 'both'
-			if values['-all-'] == True:
-				target = 'all'
-			if values['-tan_d_s-'] == True:
-				target = 'tand'
-			fig = draw_siglegraph(target, temperature)
+			
+			target = [k for k, v in values.items() if k in ['-storage-', '-loss-', '-tan_d-'] and v == True]
+			temp_cond = [k for k, v in values.items() if k in ['-all-', '-selected-', '-region-'] and v == True][0]
+			color = [k for k, v in values.items() if k in ['-multi-', '-uni-'] and v == True][0]
+			# temp_list = [temperature]
+			temp_list = var.temp_list
+			fig = draw_graph(target, color, temp_list)
 
-
-		elif event == '-draw_all-':
-			if fig != '':
-				plt.close()
-			target = ''
-			if values['-storage_a-'] == True:
-				target = 'Str. Mod.'
-			if values['-loss_a-'] == True:
-				target = 'Loss Mod.'
-			if values['-tan_d_a-'] == True:
-				target = 'Tan_d'
-			fig = draw_allgraphs(target)
 	plt.close('all')
 	ext_window.close()
 	return
@@ -99,19 +85,19 @@ def make_extwindow():
 	cond_label = list(var.datalabel_dic.keys())
 	cond_data = [[var.datalabel_dic[key] for key in list(var.datalabel_dic.keys())]]
 
-	frame_extract = sg.Frame(
-		'Extract Conditions', [
-			[sg.Table(cond_data, 
-			headings=cond_label, 
-			def_col_width=14, 
-			justification='center', 
-			auto_size_columns=False, 
-			num_rows=1)],
-			[sg.Text('Skip Columns:', 
-			size=(10,1)), 
-			sg.Text(var.skip, size=(4,1))],
-		]
-	)
+	frame_extract = sg.Frame('Extract Conditions', 
+			  					[
+								[sg.Table(cond_data, 
+								headings=cond_label, 
+								def_col_width=14, 
+								justification='center', 
+								auto_size_columns=False, 
+								num_rows=1)],
+								[sg.Text('Skip Columns:', 
+								size=(10,1)), 
+								sg.Text(var.skip, size=(4,1))],
+								]
+							)
 	col_temp = sg.Column(
 							[
 								[sg.Text('Temp.(°C)', size=(10, 1))],
@@ -140,34 +126,34 @@ def make_extwindow():
 									]
 								]
 							)
-	col_all = [
-				[sg.Radio("Storage Modulus", group_id='all', key='-storage_a-')],
-				[sg.Radio("Loss Modulus", group_id='all', key='-loss_a-')],
-				[sg.Radio("tan_d", group_id='all', key='-tan_d_a-', default=True)]
+	col_target = [
+				[sg.Checkbox("Storage Modulus", key='-storage-')],
+				[sg.Checkbox("Loss Modulus", key='-loss-')],
+				[sg.Checkbox("tan_d", key='-tan_d-', default=True)]
 				]
-	col_sel = [
-				[sg.Radio("Both Moduli", group_id='select', key='-both-')],
-				[sg.Radio("All", group_id='select', key='-all-')],
-				[sg.Radio("tan_d", group_id='select', key='-tan_d_s-', default=True)]
+	col_temp = [
+				[sg.Radio("All", group_id='temp', key='-all-', default=True)],
+				[sg.Radio("Selected", group_id='temp', key='-selected-')],
+				[sg.Radio("Region", group_id='temp', key='region-')]
+				]
+	col_colour = [
+				[sg.Radio("Multi Color", group_id='col', key='-multi-', default=True)],
+				[sg.Radio("Uni Color", group_id='col', key='-uni-')],
+				# [sg.Radio("Region", group_id='select', key='region-', default=True)]
 				]
 	frame_all = sg.Frame(
 					'Draw Graph', [
 						[
-						sg.Button('Draw All Graph', key = '-draw_all-', size=(20,5)), 
-	  					sg.Column(col_all, justification='l')
-						]
-					])
-	frame_sel = sg.Frame(
-					'Draw Graph for Selected Temp.', [ 
-						[
-						sg.Button('Draw Selected Graph', key = '-draw-', disabled=True, size=(20,5)), 
-						sg.Column(col_sel, justification='l')
+						sg.Button('Draw Graph', key = '-draw-', size=(20,5)), 
+	  					sg.Column(col_target, justification='l'),
+						sg.Column(col_temp, justification='l'),
+						sg.Column(col_colour, justification='l')
 						]
 					])
 	extracted_layout=[
 				[frame_extract],
 				[frame_table],
-				[frame_all, frame_sel],
+				[frame_all],
 				[sg.Button('Back to MAIN', key = '-exit-', size=(20,1))]
 				]
 	window = sg.Window('Check and Draw Graph for Extracted data', extracted_layout, finalize=True)
@@ -187,7 +173,7 @@ def draw_siglegraph(target, temperature):
 				label=r'Tan $\delta$', 
 				c="r")
 		ax.set_ylabel(r'Tan $\delta$')  # y軸ラベル
-		ax.set_xlabel('Freq.')  # x軸ラベル
+		ax.set_xlabel('Angular Frequency')  # x軸ラベル
 		ax.set_title('Measured Raw Data for T=' + str(temperature)) # グラフタイトル
 		ax.semilogx(base=10)
 		ax.semilogy(base=10)
@@ -203,7 +189,7 @@ def draw_siglegraph(target, temperature):
 				label= 'G"', 
 				c="g")
 		ax.set_ylabel('Storage and Loss Moduli')  # y軸ラベル
-		ax.set_xlabel('Freq.')  # x軸ラベル
+		ax.set_xlabel('Angular Frequency')  # x軸ラベル
 		ax.set_title('Measured Raw Data for T=' + str(temperature)) # グラフタイトル
 		ax.semilogx(base=10)
 		ax.semilogy(base=10)
@@ -222,7 +208,7 @@ def draw_siglegraph(target, temperature):
 				label=r'Tan $\delta$', c="b")
 		ax1.set_ylabel('Storage and Loss Moduli')  # y軸ラベル
 		ax2.set_ylabel(r'Tan $\delta$')  # y軸ラベル
-		ax1.set_xlabel('Freq.')  # x軸ラベル
+		ax1.set_xlabel('Angular Frequency')  # x軸ラベル
 		ax1.set_title('Measured Raw Data for T=' + str(temperature)) # グラフタイトル
 		ax1.semilogx(base=10)
 		ax1.semilogy(base=10)
@@ -240,7 +226,7 @@ def draw_allgraphs(target):
 		ax.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
 				var.extracted_dic[temperature][target], 
 				label='T='+str(temperature))
-	ax.set_xlabel('Freq.')  # x軸ラベル
+	ax.set_xlabel('Angular Frequency')  # x軸ラベル
 	if target == 'Tan_d':
 		ax.set_ylabel(r'Tan $\delta$')  # y軸ラベル
 	elif target == 'Str. Mod.':
@@ -258,49 +244,98 @@ def draw_allgraphs(target):
 
 
 
-def draw_graph(target, temp_list):
+def draw_graph(target, color, temp_list):
 	fig, ax1 = plt.subplots()
-	for temperature in temp_list:
-		if target == 'tand':
-			ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
-					var.extracted_dic[temperature]['Tan_d'], 
-					label=r'Tan $\delta$', 
-					c="r")
-			ax1.set_ylabel(r'Tan $\delta$')  # y軸ラベル
-			ax1.legend(borderaxespad=0)
-		elif target == 'both':
-			ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
-					var.extracted_dic[temperature]['Str. Mod.'], 
-					label="G'", 
-					c="r")
-			ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
-					var.extracted_dic[temperature]['Loss Mod.'], 
-					label= 'G"', 
-					c="g")
-			ax1.set_ylabel('Storage and Loss Moduli')  # y軸ラベル
-			ax1.legend(borderaxespad=0)
-		elif target == 'all':
+	labeltext = ''
+	legendlist = []
+	if len(target) == 1:
+		for temperature in temp_list:
+			if target[0] == '-storage-':
+				if color == '-multi-':
+					ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
+						var.extracted_dic[temperature]['Str. Mod.'], 
+						label='T='+str(temperature))
+					ax1.legend(borderaxespad=0, ncol=2)
+				else:
+					ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
+							var.extracted_dic[temperature]['Str. Mod.'], 
+							c="r")
+					ax1.legend(["G'"])
+				if len(temp_list) >1:
+					ax1.set_title('Plot of Storage Modulus for varied Temperature')
+				else:
+					ax1.set_title('Plot of Storage Modulus for Temperature = '+ str(temperature))
+				ax1.set_ylabel('Storage Modulus')
+				
+			elif target[0] == '-loss-':
+				if color == '-multi-':
+					ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
+							var.extracted_dic[temperature]['Loss Mod.'], 
+							label='T='+str(temperature))
+					ax1.legend(borderaxespad=0, ncol=2)
+				else:
+					ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
+							var.extracted_dic[temperature]['Loss Mod.'], 
+							label= 'G"', 
+							c="g")
+					ax1.legend(["G''"])
+				if len(temp_list) >1:
+					ax1.set_title('Plot of Loss Modulus for varied Temperature')
+				else:
+					ax1.set_title('Plot of Loss Modulus for Temperature = '+ str(temperature))
+				ax1.set_ylabel('Loss Modulus')
+				
+			elif target[0] == '-tan_d-':
+				if color == '-multi-':
+					ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
+						var.extracted_dic[temperature]['Tan_d'], 
+						label='T='+str(temperature))
+					ax1.legend(borderaxespad=0, ncol=2)
+				else:
+					ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
+							var.extracted_dic[temperature]['Tan_d'], 
+							label=r'Tan $\delta$', 
+							c="b")
+					ax1.legend([r'Tan $\delta$'])
+				if len(temp_list) >1:
+					ax1.set_title(r'Plot of Tan $\delta$ for varied Temperature')
+				else:
+					ax1.set_title(r'Plot of Tan $\delta$ for Temperature = '+ str(temperature))
+				ax1.set_ylabel(r'Tan $\delta$') 
+	else:
+		if '-storage-' in target:
+			legendlist.append("G'")
+			labeltext += "G', "
+		if '-loss-' in target:
+			legendlist.append("G''")
+			labeltext += "G''"
+		if '-tan_d-' in target:
 			ax2 = ax1.twinx()
-			ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
-					var.extracted_dic[temperature]['Str. Mod.'], 
-					label="G'", c="r")
-			ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
-					var.extracted_dic[temperature]['Loss Mod.'], 
-					label= 'G"', c="g")
-			ax2.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
-					var.extracted_dic[temperature]['Tan_d'], 
-					label=r'Tan $\delta$', c="b")
-			ax1.set_ylabel('Storage and Loss Moduli')  # y軸ラベル
-			ax2.set_ylabel(r'Tan $\delta$')  # y軸ラベル
+			legendlist.append('Tan $\delta$')
+			ax2.set_ylabel(r'Tan $\delta$')
 			ax2.semilogy(base=10)
-			h1, l1 = ax1.get_legend_handles_labels()
-			h2, l2 = ax2.get_legend_handles_labels()
-			ax1.legend(h1 + h2, l1 + l2, borderaxespad=0)
 
-		ax1.set_xlabel('Freq.')  # x軸ラベル
-		ax1.set_title('Measured Raw Data for T=' + str(temperature)) # グラフタイトル
-		ax1.semilogx(base=10)
-		ax1.semilogy(base=10)
+		for temperature in temp_list:
+			if '-storage-' in target:
+				ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
+						var.extracted_dic[temperature]['Str. Mod.'], 
+						c="r")
+			if '-loss-' in target:
+				ax1.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
+						var.extracted_dic[temperature]['Loss Mod.'], 
+						c="g")
+			if '-tan_d-' in target:
+				ax2.plot(var.extracted_dic[temperature]['Ang. Freq.'], 
+						var.extracted_dic[temperature]['Tan_d'], 
+						c="b")
+		ax1.legend(legendlist)
+		ax1.set_ylabel(labeltext)
+	
+	# ax1.set_title('Measured Raw Data for T=' + str(temperature)) # グラフタイトル
+
+	ax1.set_xlabel('Angular Frequency')  # x軸ラベル
+	ax1.semilogx(base=10)
+	ax1.semilogy(base=10)
 
 	plt.show(block=False)
 	return fig
