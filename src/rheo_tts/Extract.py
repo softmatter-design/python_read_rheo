@@ -67,7 +67,6 @@ def show_extracted():
 			if fig != '':
 				plt.close()
 			
-			
 			target = [k for k, v in values.items() if k in ['-storage-', '-loss-', '-tan_d-'] and v == True]
 			temp_cond = [k for k, v in values.items() if k in ['-all-', '-selected-', '-region-'] and v == True][0]
 			color = [k for k, v in values.items() if k in ['-multi-', '-uni-'] and v == True][0]
@@ -149,7 +148,7 @@ def make_extwindow():
 				[frame_extract],
 				[frame_table],
 				[frame_all],
-				[sg.Button('Back to MAIN', key = '-exit-', size=(20,1))]
+				[sg.Button('Back to Prev. Window', key = '-exit-', size=(30,1))]
 				]
 	window = sg.Window('Check and Draw Graph for Extracted data', extracted_layout, finalize=True)
 	return window

@@ -150,9 +150,9 @@ def make_original_window():
 	layout_orgtable = [
 				[frame_table],
 				[frame_savecommennt],
-				[sg.Button('Back to MAIN', 
+				[sg.Button('Back to Prev. Window', 
 				key = '-exit-', 
-				size = (20,1))]
+				size = (30,1))]
 		]
 	window = sg.Window('Selected Data', layout_orgtable, finalize=True, resizable=True)
 	# , size=(900,850))
